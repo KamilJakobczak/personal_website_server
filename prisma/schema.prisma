@@ -1,0 +1,193 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// type Books {
+//   books String[]
+// }
+
+type Address {
+  country    String?
+  zipCode    String?
+  city       String?
+  street     String?
+  buildingNr String?
+  placeNr    Int?
+}
+
+type Covers {
+  original String
+  big      String
+  medium   String
+  small    String
+}
+
+type CoverType {
+  paperback String?
+  hardcover String?
+  ebook     String?
+}
+
+type Editions {
+  myEditionNumber Int?
+  myEditionYear   Int?
+}
+
+type BioPages {
+  wiki         String?
+  goodreads    String?
+  lubimyczytac String?
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Language {
+  POLISH
+  ENGLISH
+}
+
+enum Status {
+  READ
+  UNREAD
+  WANTEDTOBUY
+  WANTEDTOREAD
+}
+
+enum Currency {
+  PLN
+  EUR
+  USD
+}
+
+model Author {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  firstName   String
+  lastName    String
+  nationality String?
+  birthYear   Int?
+  deathYear   Int?
+  bioPages    BioPages?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  bookIDs     String[]  @db.ObjectId
+  books       Book[]    @relation(fields: [bookIDs], references: [id])
+}
+
+model Book {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  title          String
+  language       Language     @default(POLISH)
+  pages          Int
+  covers         Covers?
+  isbn           String       @unique
+  firstEdition   Int
+  authorIDs      String[]     @db.ObjectId
+  author         Author[]     @relation(fields: [authorIDs], references: [id])
+  collectionIDs  String[]     @db.ObjectId
+  collections    Collection[] @relation(fields: [collectionIDs], references: [id])
+  genreIDs       String[]     @db.ObjectId
+  genres         Genre[]      @relation("Genres", fields: [genreIDs], references: [id])
+  publisherID    String       @db.ObjectId
+  publisher      Publisher    @relation(fields: [publisherID], references: [id])
+  translatorIDs  String[]     @db.ObjectId
+  translator     Translator[] @relation(fields: [translatorIDs], references: [id])
+  usersIDs       String[]     @db.ObjectId
+  shelvedByUsers Profile[]    @relation(fields: [usersIDs], references: [id])
+}
+
+type BookInCollection {
+  tome   String
+  bookId String @db.ObjectId
+}
+
+model Collection {
+  id                String             @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  name              String
+  booksIDs          String[]           @db.ObjectId
+  books             Book[]             @relation(fields: [booksIDs], references: [id])
+  booksInCollection BookInCollection[]
+}
+
+model Genre {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String
+  booksIDs  String[] @db.ObjectId
+  books     Book[]   @relation("Genres", fields: [booksIDs], references: [id])
+}
+
+model Publisher {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String   @unique
+  address   Address
+  website   String?
+  books     Book[]
+}
+
+model Translator {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  firstName String
+  lastName  String
+  bookIDs   String[] @db.ObjectId
+  books     Book[]   @relation(fields: [bookIDs], references: [id])
+}
+
+model User {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  name         String?
+  email        String   @unique
+  password     String
+  role         Role     @default(USER)
+  profile      Profile? @relation(name: "User")
+  familyHeadId String?  @db.ObjectId
+  familyHead   Profile? @relation("Family", fields: [familyHeadId], references: [id])
+}
+
+model Profile {
+  id                String            @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  bio               String
+  userId            String            @unique @db.ObjectId
+  user              User              @relation(name: "User", fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  family            User[]            @relation(name: "Family")
+  shelfBooksIDs     String[]          @db.ObjectId
+  personalBookShelf Book[]            @relation(fields: [shelfBooksIDs], references: [id])
+  UserBookDetails   UserBookDetails[]
+}
+
+model UserBookDetails {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  bookID    String     @db.ObjectId
+  profileID String     @db.ObjectId
+  profile   Profile    @relation(fields: [profileID], references: [id])
+  coverType CoverType?
+  editions  Editions?
+  status    Status?
+  whenRead  Int?
+  rating    Int?
+  currency  Currency?
+  buyPrice  Int?
+}
