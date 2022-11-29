@@ -20,7 +20,7 @@ type Address {
   city       String?
   street     String?
   buildingNr String?
-  placeNr    Int?
+  placeNr    String?
 }
 
 type Covers {

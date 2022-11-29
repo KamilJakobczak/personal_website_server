@@ -19,7 +19,7 @@ interface PublisherArgs {
       city: string;
       street: string;
       buildingNr: string;
-      placeNr: number;
+      placeNr: string;
     };
     website?: string;
   };
@@ -34,7 +34,7 @@ interface PublisherUpdateArgs {
       city?: string;
       street?: string;
       buildingNr?: string;
-      placeNr?: number;
+      placeNr?: string;
     };
     website?: string;
   };
@@ -76,7 +76,7 @@ export const publisher = gql`
     city: String
     street: String
     buildingNr: String
-    placeNr: Int
+    placeNr: String
   }
   input addPublisherInput {
     name: String!
@@ -133,16 +133,32 @@ export const publisherResolvers = {
       const { name, address, website } = input;
       const { country, zipCode, city, street, buildingNr, placeNr } = address;
 
+      const doesExist = await prisma.publisher.findFirst({
+        where: {
+          name: {
+            equals: name,
+            mode: 'insensitive',
+          },
+        },
+      });
+
+      if (doesExist) {
+        return {
+          userErrors: [{ message: 'Genre already exists in the database' }],
+          publisher: null,
+        };
+      }
+
       return {
         userErrors: [{ message: '' }],
         publisher: prisma.publisher.create({
           data: {
-            name: name.toLowerCase(),
+            name,
             address: {
-              country: country.toLowerCase(),
+              country,
               zipCode,
-              city: city.toLowerCase(),
-              street: street.toLowerCase(),
+              city,
+              street,
               buildingNr,
               placeNr,
             },
