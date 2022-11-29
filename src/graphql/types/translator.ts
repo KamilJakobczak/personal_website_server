@@ -77,9 +77,40 @@ export const translatorResolvers = {
     addTranslator: async (
       _: any,
       { input }: TranslatorArgs,
-      { prisma }: Context
+      { userInfo, prisma }: Context
     ): Promise<TranslatorPayloadType> => {
       const { firstName, lastName } = input;
+
+      const userAuth = await authCheck({ userInfo, prisma });
+      if (userAuth !== true) {
+        return {
+          ...userAuth,
+          ...{ translator: null },
+        };
+      }
+
+      const doesExist = await prisma.translator.findFirst({
+        where: {
+          firstName: {
+            equals: firstName,
+            mode: 'insensitive',
+          },
+          AND: {
+            lastName: {
+              equals: lastName,
+              mode: 'insensitive',
+            },
+          },
+        },
+      });
+
+      if (doesExist) {
+        return {
+          userErrors: [{ message: 'Translator exists in the database' }],
+          translator: null,
+        };
+      }
+
       return {
         userErrors: [{ message: '' }],
         translator: prisma.translator.create({

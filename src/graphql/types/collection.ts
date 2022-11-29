@@ -102,16 +102,16 @@ export const collectionResolvers = {
       { userInfo, prisma }: Context
     ): Promise<CollectionPayloadType> => {
       const collectionNull = { collection: null };
-      // const userAuth = await authCheck({ userInfo, prisma });
-      // if (userAuth !== true) {
-      //   return {
-      //     ...userAuth,
-      //     ...collectionNull,
-      //   };
-      // }
+      const userAuth = await authCheck({ userInfo, prisma });
+      if (userAuth !== true) {
+        return {
+          ...userAuth,
+          ...collectionNull,
+        };
+      }
       const { name, booksInCollection } = input;
-      console.log(booksInCollection);
-      const alreadyExists = await prisma.collection.findFirst({
+
+      const doesExist = await prisma.collection.findFirst({
         where: {
           name: {
             equals: name,
@@ -119,7 +119,7 @@ export const collectionResolvers = {
           },
         },
       });
-      if (alreadyExists) {
+      if (doesExist) {
         return {
           userErrors: [
             { message: 'Collection already exists in the database' },
