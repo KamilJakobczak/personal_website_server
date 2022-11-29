@@ -85,21 +85,23 @@ export const genreResolvers = {
       { input }: GenreArgs,
       { userInfo, prisma }: Context
     ): Promise<GenrePayloadType> => {
-      const genreNull = { genre: null };
       const userAuth = await authCheck({ userInfo, prisma });
       if (userAuth !== true) {
         return {
           ...userAuth,
-          ...genreNull,
+          ...{ genre: null },
         };
       }
       const { name } = input;
-      const alreadyExists = await prisma.genre.findFirst({
+      const doesExist = await prisma.genre.findFirst({
         where: {
-          name: name.toLowerCase(),
+          name: {
+            equals: name,
+            mode: 'insensitive',
+          },
         },
       });
-      if (alreadyExists) {
+      if (doesExist) {
         return {
           userErrors: [{ message: 'Genre already exists in the database' }],
           genre: null,
