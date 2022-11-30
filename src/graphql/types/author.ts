@@ -31,6 +31,7 @@ interface AuthorUpdateArgs {
     };
   };
 }
+String;
 interface AuthorPayloadType {
   userErrors: {
     message: string;
@@ -82,6 +83,7 @@ export const author = gql`
     lastName: String!
     nationality: String
     birthYear: Int
+    deathYear: Int
     bioPages: bioPagesInput
   }
   input updateAuthorInput {
@@ -89,6 +91,7 @@ export const author = gql`
     lastName: String
     nationality: String
     birthYear: Int
+    deathYear: Int
     bioPages: bioPagesInput
   }
 `;
@@ -130,16 +133,22 @@ export const authorResolvers = {
       { input }: AuthorArgs,
       { prisma, userInfo }: Context
     ): Promise<AuthorPayloadType> => {
-      const authorNull = { author: null };
       const authCheckVar = await authCheck({ userInfo, prisma });
       if (authCheckVar !== true) {
         return {
           ...authCheckVar,
-          ...authorNull,
+          ...{ author: null },
         };
       }
 
-      const { firstName, lastName, nationality, birthYear, bioPages } = input;
+      const {
+        firstName,
+        lastName,
+        nationality,
+        birthYear,
+        deathYear,
+        bioPages,
+      } = input;
       const authorExists = await prisma.author.findFirst({
         where: {
           firstName: {
@@ -151,7 +160,7 @@ export const authorResolvers = {
             mode: 'insensitive',
           },
           nationality: nationality ? nationality.toLowerCase() : null,
-          birthYear: birthYear,
+          birthYear,
         },
       });
       if (!authorExists) {
@@ -163,6 +172,7 @@ export const authorResolvers = {
               lastName: lastName,
               nationality: nationality ? nationality.toLowerCase() : null,
               birthYear,
+              deathYear,
               bioPages: bioPages
                 ? {
                     wiki: bioPages.wiki,
@@ -237,13 +247,21 @@ export const authorResolvers = {
           author: null,
         };
       }
-      const { firstName, lastName, nationality, birthYear, bioPages } = input;
+      const {
+        firstName,
+        lastName,
+        nationality,
+        birthYear,
+        deathYear,
+        bioPages,
+      } = input;
 
       let payloadToUpdate = {
         firstName,
         lastName,
         nationality,
         birthYear,
+        deathYear,
         bioPages,
       };
 
@@ -258,6 +276,9 @@ export const authorResolvers = {
       }
       if (!birthYear) {
         delete payloadToUpdate.birthYear;
+      }
+      if (!deathYear) {
+        delete payloadToUpdate.deathYear;
       }
       if (!bioPages) {
         delete payloadToUpdate.bioPages;
