@@ -11,10 +11,10 @@ import { Context } from '../../prismaClient';
 import { authCheck } from './resolvers/auth';
 
 interface BooksQueryArgs {
-  input: {
+  input?: {
     filter: {
       genres: string[];
-      publisher: string;
+      publishers: string[];
     };
   };
 }
@@ -60,7 +60,7 @@ interface BookPayloadType {
 export const book = gql`
   extend type Query {
     book(id: ID!): Book
-    books: [Book]!
+    books(input: BooksInput): [Book]!
   }
   type Mutation {
     addBook(input: addBookInput!): BookPayload!
@@ -108,7 +108,7 @@ export const book = gql`
 
   input BooksFilter {
     genres: [String]!
-    publisher: String
+    publishers: [String]!
   }
   input addBookInput {
     title: String!
@@ -154,47 +154,55 @@ export const bookResolvers = {
       });
     },
     books: async (_: any, { input }: BooksQueryArgs, { prisma }: Context) => {
-      const { filter } = input;
-      const { genres, publisher } = filter;
-      console.log(genres, publisher);
-      if (!genres && !publisher) {
-        return prisma.book.findMany();
-      }
-      if (genres || publisher) {
-        if (genres) {
+      //
+      // const { genres, publisher } = filter;
+      // console.log(genres, publisher);
+      if (input) {
+        const { filter } = input;
+        const { genres, publishers } = filter;
+        if (genres && publishers) {
+          const books = await prisma.book.findMany({
+            where: {
+              genreIDs: {
+                hasSome: genres,
+              },
+              AND: {
+                publisherID: { in: publishers },
+              },
+            },
+          });
+          return books;
+        } else {
           const books = await prisma.book.findMany({
             where: {
               genreIDs: {
                 hasSome: genres,
               },
               OR: {
-                publisherID: publisher,
+                publisherID: { in: publishers },
               },
             },
           });
           return books;
         }
-        // if (publisher) {
-        //   const books = await prisma.book.findMany({
-        //     where: {
-        //       publisherID: publisher,
-        //     },
-        //   });
-        //   return books;
-        // }
       } else {
-        const books = await prisma.book.findMany({
-          where: {
-            genreIDs: {
-              hasSome: genres,
-            },
-            AND: {
-              publisherID: publisher,
-            },
-          },
-        });
-        return books;
+        return prisma.book.findMany();
       }
+      // if (genres || publisher) {
+      //   if (genres) {
+      //
+      //   }
+      //   // if (publisher) {
+      //   //   const books = await prisma.book.findMany({
+      //   //     where: {
+      //   //       publisherID: publisher,
+      //   //     },
+      //   //   });
+      //   //   return books;
+      //   // }
+      // } else {
+      //
+      // }
     },
   },
   Book: {
