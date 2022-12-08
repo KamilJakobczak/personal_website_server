@@ -10,12 +10,21 @@ import gql from 'graphql-tag';
 import { Context } from '../../prismaClient';
 import { authCheck } from './resolvers/auth';
 
+interface BooksQueryArgs {
+  input: {
+    filter: {
+      genres: string[];
+      publisher: string;
+    };
+  };
+}
+
 interface BookArgs {
   input: {
     title: string;
     language: Language;
     authors: string[];
-    collection?: Collection;
+    collections: string[];
     translators: string[];
     bookGenres: string[];
     pages: number;
@@ -38,6 +47,7 @@ interface BookUpdateArgs {
     covers?: Covers;
     isbn?: string;
     firstEdition?: number;
+    collections: string[];
   };
 }
 interface BookPayloadType {
@@ -50,7 +60,7 @@ interface BookPayloadType {
 export const book = gql`
   extend type Query {
     book(id: ID!): Book
-    books(filter: BooksFilterInput): [Book!]!
+    books: [Book]!
   }
   type Mutation {
     addBook(input: addBookInput!): BookPayload!
@@ -91,11 +101,14 @@ export const book = gql`
     ENGLISH
     POLISH
   }
-  input BooksFilterInput {
-    currency: Currencies
-    rating: Int
-    ratingAbove: Boolean
-    id: [ID!]
+
+  input BooksInput {
+    filter: BooksFilter
+  }
+
+  input BooksFilter {
+    genres: [String]!
+    publisher: String
   }
   input addBookInput {
     title: String!
@@ -140,8 +153,48 @@ export const bookResolvers = {
         },
       });
     },
-    books: async (_: any, __: any, { prisma }: Context) => {
-      return prisma.book.findMany();
+    books: async (_: any, { input }: BooksQueryArgs, { prisma }: Context) => {
+      const { filter } = input;
+      const { genres, publisher } = filter;
+      console.log(genres, publisher);
+      if (!genres && !publisher) {
+        return prisma.book.findMany();
+      }
+      if (genres || publisher) {
+        if (genres) {
+          const books = await prisma.book.findMany({
+            where: {
+              genreIDs: {
+                hasSome: genres,
+              },
+              OR: {
+                publisherID: publisher,
+              },
+            },
+          });
+          return books;
+        }
+        // if (publisher) {
+        //   const books = await prisma.book.findMany({
+        //     where: {
+        //       publisherID: publisher,
+        //     },
+        //   });
+        //   return books;
+        // }
+      } else {
+        const books = await prisma.book.findMany({
+          where: {
+            genreIDs: {
+              hasSome: genres,
+            },
+            AND: {
+              publisherID: publisher,
+            },
+          },
+        });
+        return books;
+      }
     },
   },
   Book: {
@@ -236,6 +289,7 @@ export const bookResolvers = {
       { input }: BookArgs,
       { prisma, userInfo }: Context
     ): Promise<BookPayloadType> => {
+      console.log(input);
       const userAuth = await authCheck({ userInfo, prisma });
       if (userAuth !== true) {
         return {
@@ -243,6 +297,7 @@ export const bookResolvers = {
           book: null,
         };
       }
+
       const {
         title,
         language,
@@ -254,6 +309,7 @@ export const bookResolvers = {
         // covers,
         isbn,
         firstEdition,
+        collections,
       } = input;
       // const { original, big, medium, small } = covers;
 
@@ -302,6 +358,7 @@ export const bookResolvers = {
             publisherID: publisher,
             isbn,
             firstEdition,
+            collectionIDs: collections,
           },
         }),
       };

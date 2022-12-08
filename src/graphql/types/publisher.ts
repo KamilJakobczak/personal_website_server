@@ -60,7 +60,7 @@ export const publisher = gql`
     name: String
     address: Address
     website: String
-    books(filter: BooksFilterInput): [Book]
+    books: [Book]!
   }
   type Address {
     country: String

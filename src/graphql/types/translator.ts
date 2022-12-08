@@ -12,7 +12,7 @@ export const translator = gql`
     firstName: String
     lastName: String
 
-    books(filter: BooksFilterInput): [Book]!
+    books: [Book]!
   }
   type Mutation {
     addTranslator(input: addTranslatorInput): TranslatorPayload!

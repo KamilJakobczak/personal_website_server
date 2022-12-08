@@ -58,7 +58,7 @@ export const author = gql`
     birthYear: Int
     deathYear: Int
     bioPages: bioPages
-    books(filter: BooksFilterInput): [Book]
+    books: [Book]!
   }
   type userError {
     message: String!

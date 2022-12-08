@@ -51,7 +51,7 @@ export const genre = gql`
   type Genre implements Node {
     id: ID!
     name: String!
-    books(filter: BooksFilterInput): [Book!]!
+    books: [Book!]!
   }
 `;
 
