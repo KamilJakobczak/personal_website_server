@@ -154,9 +154,6 @@ export const bookResolvers = {
       });
     },
     books: async (_: any, { input }: BooksQueryArgs, { prisma }: Context) => {
-      //
-      // const { genres, publisher } = filter;
-      // console.log(genres, publisher);
       if (input) {
         const { filter } = input;
         const { genres, publishers } = filter;
@@ -188,21 +185,6 @@ export const bookResolvers = {
       } else {
         return prisma.book.findMany();
       }
-      // if (genres || publisher) {
-      //   if (genres) {
-      //
-      //   }
-      //   // if (publisher) {
-      //   //   const books = await prisma.book.findMany({
-      //   //     where: {
-      //   //       publisherID: publisher,
-      //   //     },
-      //   //   });
-      //   //   return books;
-      //   // }
-      // } else {
-      //
-      // }
     },
   },
   Book: {
