@@ -6,3 +6,4 @@ export * from './translator';
 export * from './userBookDetails';
 export * from './user';
 export * from './profile';
+export * from './unions';

@@ -9,8 +9,8 @@ export const translator = gql`
   }
   type Translator implements Node {
     id: ID!
-    firstName: String
-    lastName: String
+    firstName: String!
+    lastName: String!
 
     books: [Book]!
   }

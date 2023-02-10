@@ -157,6 +157,18 @@ export const bookResolvers = {
       if (input) {
         const { filter } = input;
         const { genres, publishers } = filter;
+        console.log(genres, publishers);
+        if (genres && publishers.length === 0) {
+          const books = await prisma.book.findMany({
+            where: {
+              genreIDs: {
+                hasSome: genres,
+              },
+            },
+          });
+          return books;
+        }
+
         if (genres && publishers) {
           const books = await prisma.book.findMany({
             where: {
