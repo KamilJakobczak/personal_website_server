@@ -4,6 +4,7 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import { createCellsRouter } from './routes';
 import { collectionRouter } from './apollo/routes';
+import { imagesRouter } from './apollo/imagesRouter';
 
 export const app = express();
 app.use(function (req, res, next) {
@@ -28,3 +29,4 @@ app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/api/projects/coding', createCellsRouter());
 app.use('/api/graphql', collectionRouter);
+app.use('/api/images', imagesRouter);
