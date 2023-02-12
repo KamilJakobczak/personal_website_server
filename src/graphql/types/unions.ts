@@ -11,7 +11,6 @@ export const searchableUnion = gql`
 export const searchableUnionResolvers = {
   SearchResult: {
     __resolveType(obj: any, contextValue: any, info: any) {
-      console.log(obj);
       if (obj.title) {
         return 'Book';
       }
@@ -33,6 +32,9 @@ export const searchableUnionResolvers = {
       switch (type) {
         case 'Book':
           return prisma.book.findMany({
+            orderBy: {
+              title: 'asc',
+            },
             where: {
               title: {
                 contains: contains,
@@ -42,6 +44,9 @@ export const searchableUnionResolvers = {
           });
         case 'Publisher':
           return prisma.publisher.findMany({
+            orderBy: {
+              name: 'asc',
+            },
             where: {
               name: {
                 contains: contains,
@@ -52,6 +57,9 @@ export const searchableUnionResolvers = {
 
         case 'Author':
           return prisma.author.findMany({
+            orderBy: {
+              lastName: 'asc',
+            },
             where: {
               OR: [
                 { firstName: { contains: contains, mode: 'insensitive' } },
