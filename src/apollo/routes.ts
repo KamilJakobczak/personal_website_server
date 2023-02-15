@@ -14,6 +14,7 @@ collectionRouter.post('/add/book', async (req, res) => {
   console.log(req.body);
   res.send('new book');
 });
+
 collectionRouter.post('/add/author', async (req, res) => {
   console.log(req.body);
   res.send('new author');
