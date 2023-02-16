@@ -5,7 +5,7 @@ import fs from 'fs';
 import sharp from 'sharp';
 
 export const imagesRouter = express.Router();
-const imagesDir = path.join(__dirname, '..', '..', 'images');
+const imagesDir = path.join(__dirname, '..', '..', 'files', 'images');
 
 imagesRouter.use((req, res, next) => {
   {
