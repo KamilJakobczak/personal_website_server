@@ -1,7 +1,6 @@
 import path from 'path';
 import formidable, { IncomingForm } from 'formidable';
 import { epubParser, epubParserData } from './epubParser';
-import { nanoid } from 'nanoid';
 import { checkFolderExists } from './checkFolderExists';
 
 export async function handleUpload(req: any, res: any) {
@@ -10,7 +9,7 @@ export async function handleUpload(req: any, res: any) {
 
     const checkUploadDir = checkFolderExists(uploadDir);
     if (!checkUploadDir) {
-      return reject('There was a problem with uploads directory');
+      reject('There was a problem with uploads directory');
     }
 
     const form = new IncomingForm({

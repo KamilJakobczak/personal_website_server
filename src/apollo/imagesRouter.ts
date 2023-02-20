@@ -67,3 +67,14 @@ imagesRouter.get('/covers/:bookId/:size', async (req, res) => {
 
   // coverResize(path.join(coversPath, bookId, 'original.jpg'));
 });
+imagesRouter.get('/uploaded/covers/:id', async (req, res) => {
+  const { id } = req.params;
+  const tempDir = path.join(__dirname, '..', '..', 'files', 'images', 'temp');
+  const filePath = path.join(tempDir, 'covers', id);
+  const fileExists = fs.existsSync(filePath);
+  if (!fileExists) {
+    console.log('error');
+  } else {
+    res.sendFile(filePath);
+  }
+});
