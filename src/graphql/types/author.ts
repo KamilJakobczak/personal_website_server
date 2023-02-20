@@ -9,6 +9,8 @@ interface BooksParentType {
 interface AuthorArgs {
   input: {
     firstName: string;
+    secondName?: string;
+    thirdName?: string;
     lastName: string;
     nationality?: string;
     birthYear?: number;
@@ -20,6 +22,8 @@ interface AuthorUpdateArgs {
   id: string;
   input: {
     firstName?: string;
+    secondName?: string;
+    thirdName?: string;
     lastName?: string;
     nationality?: string;
     birthYear?: number;
@@ -53,6 +57,8 @@ export const author = gql`
   type Author implements Node {
     id: ID!
     firstName: String!
+    secondName: String
+    thirdName: String
     lastName: String!
     nationality: String
     birthYear: Int
@@ -80,6 +86,8 @@ export const author = gql`
   }
   input addAuthorInput {
     firstName: String!
+    secondName: String
+    thirdName: String
     lastName: String!
     nationality: String
     birthYear: Int
@@ -88,6 +96,8 @@ export const author = gql`
   }
   input updateAuthorInput {
     firstName: String
+    secondName: String
+    thirdName: String
     lastName: String
     nationality: String
     birthYear: Int
@@ -143,6 +153,8 @@ export const authorResolvers = {
 
       const {
         firstName,
+        secondName,
+        thirdName,
         lastName,
         nationality,
         birthYear,
@@ -169,6 +181,8 @@ export const authorResolvers = {
           author: prisma.author.create({
             data: {
               firstName: firstName,
+              secondName,
+              thirdName,
               lastName: lastName,
               nationality: nationality ? nationality.toLowerCase() : null,
               birthYear,
@@ -249,6 +263,8 @@ export const authorResolvers = {
       }
       const {
         firstName,
+        secondName,
+        thirdName,
         lastName,
         nationality,
         birthYear,
@@ -258,6 +274,8 @@ export const authorResolvers = {
 
       let payloadToUpdate = {
         firstName,
+        secondName,
+        thirdName,
         lastName,
         nationality,
         birthYear,
@@ -267,6 +285,12 @@ export const authorResolvers = {
 
       if (!firstName) {
         delete payloadToUpdate.firstName;
+      }
+      if (!secondName) {
+        delete payloadToUpdate.secondName;
+      }
+      if (!thirdName) {
+        delete payloadToUpdate.thirdName;
       }
       if (!lastName) {
         delete payloadToUpdate.lastName;

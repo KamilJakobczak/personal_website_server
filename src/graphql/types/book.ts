@@ -98,8 +98,8 @@ export const book = gql`
   }
 
   enum Language {
-    ENGLISH
-    POLISH
+    English
+    Polish
   }
 
   input BooksInput {
