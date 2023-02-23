@@ -4,13 +4,20 @@ import fs from 'fs';
 import { prisma } from '../prismaClient';
 
 export interface epubParserData {
-  authorsIDs: { existing: string[] | null; new: string[] | null } | null;
-  genresIDs: { existing: string[] | null; new: string[] | null } | null;
+  authors: {
+    existing: string[] | null;
+    new:
+      | {
+          firstName: string;
+          secondName: string;
+          thirdName: string;
+          lastName: string;
+        }[]
+      | null;
+  } | null;
+  genres: { existing: string[] | null; new: string[] | null } | null;
   publisher: {
-    existing: {
-      id: string;
-      name: string;
-    } | null;
+    existing: { id: string; name: string } | null;
     new: string | null;
   } | null;
   title: string | null;
@@ -30,6 +37,7 @@ export const epubParser = async (filepath: string, fileName: string) => {
       const localId = fileName;
 
       const data = epub.metadata;
+
       const cover = data.cover;
       const authors = data.creator;
       const description = data.description;
@@ -37,15 +45,17 @@ export const epubParser = async (filepath: string, fileName: string) => {
       const publisher = data.publisher;
       const title = data.title;
       const language = data.language;
+      const isbn = data.ISBN;
 
       let parsedData = {
         localId,
         title: title ? title : null,
         description: description ? description : null,
-        authorsIDs: await findAuthors(authors),
-        genresIDs: await findGenres(genres),
+        authors: await findAuthors(authors),
+        genres: await findGenres(genres),
         language: await checkLanguage(language),
         publisher: await findPublisher(publisher),
+        isbn,
       };
 
       if (cover === undefined) {
@@ -117,7 +127,7 @@ async function findPublisher(publisher: string) {
   });
   if (findPublisher) {
     return {
-      existing: { id: findPublisher?.id, name: findPublisher?.name },
+      existing: { id: findPublisher.id, name: findPublisher.name },
       new: null,
     };
   }
@@ -186,7 +196,12 @@ async function findAuthors(authors: string) {
   });
 
   const authorsIDs: Array<string> = [];
-  const newAuthors: Array<string> = [];
+  const newAuthors: Array<{
+    firstName: string;
+    secondName: string;
+    thirdName: string;
+    lastName: string;
+  }> = [];
 
   for (let i = 0; i < splitNamesArr.length; i++) {
     let nameArr = splitNamesArr[i];
@@ -200,7 +215,14 @@ async function findAuthors(authors: string) {
       authorsIDs.push(author.id);
     }
     if (!author) {
-      newAuthors.push(nameArr.join(' '));
+      console.log(nameArr);
+      const newAuthor = {
+        firstName: nameArr[0],
+        secondName: nameArr.length > 2 ? nameArr[1] : '',
+        thirdName: nameArr.length > 3 ? nameArr[2] : '',
+        lastName: nameArr[nameArr.length - 1],
+      };
+      newAuthors.push(newAuthor);
     }
   }
 
