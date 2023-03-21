@@ -19,7 +19,7 @@ export const coverResize = async (filePath: string) => {
         sharp(filePath).resize({ height: 1000 }).toFile(`${coverDir}/big.jpg`);
       }
       sharp(filePath).resize({ height: 500 }).toFile(`${coverDir}/medium.jpg`);
-      sharp(filePath).resize({ height: 200 }).toFile(`${coverDir}/small.jpg`);
+      sharp(filePath).resize({ height: 300 }).toFile(`${coverDir}/small.jpg`);
     } else if (coverHeight >= 500 && coverHeight < 1000 && !mediumExists) {
       if (coverHeight === 500) {
         sharp(filePath).toFile(`${coverDir}/medium.jpg`);
@@ -29,12 +29,12 @@ export const coverResize = async (filePath: string) => {
           .resize({ height: 500 })
           .toFile(`${coverDir}/medium.jpg`);
       }
-      sharp(filePath).resize({ height: 200 }).toFile(`${coverDir}/small.jpg`);
-    } else if (coverHeight >= 200 && coverHeight < 500 && !smallExists) {
-      if (coverHeight === 200) {
+      sharp(filePath).resize({ height: 300 }).toFile(`${coverDir}/small.jpg`);
+    } else if (coverHeight >= 300 && coverHeight < 500 && !smallExists) {
+      if (coverHeight === 300) {
         sharp(filePath).toFile(`${coverDir}/small.jpg`);
       } else {
-        sharp(filePath).resize({ height: 200 }).toFile(`${coverDir}/small.jpg`);
+        sharp(filePath).resize({ height: 300 }).toFile(`${coverDir}/small.jpg`);
       }
     }
     !thumbnailExists &&

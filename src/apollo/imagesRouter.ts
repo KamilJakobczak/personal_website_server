@@ -21,9 +21,11 @@ imagesRouter.get('/covers/:bookId/:size', async (req, res) => {
 
   const bookDir = path.join(coversPath, bookId);
   const bookDirExists = fs.existsSync(bookDir);
+
   if (!bookDirExists) {
-    res.send('no covers avaiable for this one');
+    res.send('no covers available for this one');
     res.end();
+    return;
   }
 
   const filePath = path.join(bookDir, `${size}.jpg`);
@@ -35,6 +37,10 @@ imagesRouter.get('/covers/:bookId/:size', async (req, res) => {
   const originalHeight =
     originalExists && (await sharp(originalPath).metadata()).height;
 
+  const bigPath = path.join(coversPath, bookId, 'big.jpg');
+  const bigExists = fs.existsSync(bigPath);
+  // const bigHeight = bigExists && (await sharp(bigPath).metadata()).height;
+
   const mediumPath = path.join(coversPath, bookId, 'medium.jpg');
   const mediumExists = fs.existsSync(mediumPath);
   const mediumHeight =
@@ -43,6 +49,10 @@ imagesRouter.get('/covers/:bookId/:size', async (req, res) => {
   const smallPath = path.join(coversPath, bookId, 'small.jpg');
   const smallExists = fs.existsSync(smallPath);
   const smallHeight = smallExists && (await sharp(smallPath).metadata()).height;
+
+  if (originalExists && (!bigExists || !mediumExists || !smallExists)) {
+    await coverResize(path.join(coversPath, bookId, 'original.jpg'));
+  }
 
   if (fileExists) {
     res.sendFile(filePath);
@@ -64,8 +74,6 @@ imagesRouter.get('/covers/:bookId/:size', async (req, res) => {
     console.log('Something went wrong with preparing the cover for this one');
     res.send('Something went wrong with preparing the cover for this one');
   }
-
-  // coverResize(path.join(coversPath, bookId, 'original.jpg'));
 });
 imagesRouter.get('/uploaded/covers/:id', async (req, res) => {
   const { id } = req.params;
