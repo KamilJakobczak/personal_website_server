@@ -4,38 +4,7 @@ import validator from 'validator';
 import bcrypt from 'bcryptjs';
 import JWT from 'jsonwebtoken';
 import { JWT_SIGNATURE } from '../keys';
-
-export const user = gql`
-  extend type Query {
-    me: User
-    user(id: ID!): User!
-  }
-
-  type Mutation {
-    signin(credentials: CredentialsInput!): AuthPayload!
-    signup(
-      credentials: CredentialsInput!
-      name: String!
-      bio: String
-    ): AuthPayload
-  }
-
-  type User implements Node {
-    id: ID!
-    name: String
-    email: String!
-    profile: Profile
-  }
-
-  type AuthPayload {
-    userErrors: [userError!]!
-    token: String
-  }
-  input CredentialsInput {
-    email: String!
-    password: String!
-  }
-`;
+import { User, Prisma } from '@prisma/client';
 
 interface SignupArgs {
   credentials: {
@@ -56,7 +25,45 @@ interface UserPayload {
     message: string;
   }[];
   token: string | null;
+  user: User | Prisma.Prisma__UserClient<User> | null;
 }
+
+export const user = gql`
+  extend type Query {
+    me: User
+    user(id: ID!): User!
+  }
+
+  type Mutation {
+    signin(credentials: CredentialsInput!): AuthPayload!
+    signup(
+      credentials: CredentialsInput!
+      name: String!
+      bio: String
+    ): SignupPayload!
+  }
+
+  type User implements Node {
+    id: ID!
+    name: String
+    email: String!
+    profile: Profile
+  }
+
+  type SignupPayload {
+    userErrors: [userError!]!
+    token: String
+    user: User
+  }
+  type AuthPayload {
+    userErrors: [userError!]!
+    token: String
+  }
+  input CredentialsInput {
+    email: String!
+    password: String!
+  }
+`;
 
 export const userResolvers = {
   Query: {
@@ -102,6 +109,7 @@ export const userResolvers = {
         return {
           userErrors: [{ message: 'Invalid credentials' }],
           token: null,
+          user: null,
         };
       }
 
@@ -114,6 +122,7 @@ export const userResolvers = {
             },
           ],
           token: null,
+          user: null,
         };
       }
       const profile = await prisma.profile.findUnique({
@@ -131,6 +140,7 @@ export const userResolvers = {
             expiresIn: 360000,
           }
         ),
+        user: null,
       };
     },
     signup: async (
@@ -141,6 +151,20 @@ export const userResolvers = {
       const { email, password } = credentials;
       const isEmail = validator.isEmail(email);
 
+      const userExists = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
+
+      if (userExists) {
+        return {
+          userErrors: [{ message: 'This email is already in use' }],
+          token: null,
+          user: null,
+        };
+      }
+
       if (!isEmail) {
         return {
           userErrors: [
@@ -149,6 +173,7 @@ export const userResolvers = {
             },
           ],
           token: null,
+          user: null,
         };
       }
 
@@ -162,6 +187,7 @@ export const userResolvers = {
             },
           ],
           token: null,
+          user: null,
         };
       }
 
@@ -175,6 +201,7 @@ export const userResolvers = {
             },
           ],
           token: null,
+          user: null,
         };
       }
 
@@ -200,6 +227,7 @@ export const userResolvers = {
             expiresIn: 360000,
           }
         ),
+        user: user,
       };
     },
   },
