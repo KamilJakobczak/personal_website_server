@@ -96,7 +96,7 @@ export const userResolvers = {
     signin: async (
       _: any,
       { credentials }: SigninArgs,
-      { prisma }: Context
+      { prisma, req }: Context
     ): Promise<UserPayload> => {
       const { email, password } = credentials;
       const user = await prisma.user.findUnique({
@@ -131,22 +131,26 @@ export const userResolvers = {
         },
       });
 
+      const token = JWT.sign(
+        { userId: user.id, profileId: profile?.id },
+        JWT_SIGNATURE,
+        {
+          expiresIn: 360000,
+        }
+      );
+
+      const cookie = req.response.cookie('authorization', token);
+      console.log(cookie);
       return {
         userErrors: [{ message: '' }],
-        token: JWT.sign(
-          { userId: user.id, profileId: profile?.id },
-          JWT_SIGNATURE,
-          {
-            expiresIn: 360000,
-          }
-        ),
+        token,
         user: null,
       };
     },
     signup: async (
       _: any,
       { credentials, name, bio }: SignupArgs,
-      { prisma }: Context
+      { prisma, res }: Context
     ): Promise<UserPayload> => {
       const { email, password } = credentials;
       const isEmail = validator.isEmail(email);
@@ -214,19 +218,28 @@ export const userResolvers = {
           password: hashedPassword,
         },
       });
+      const token = JWT.sign(
+        {
+          userId: user.id,
+          email: user.email,
+        },
+        JWT_SIGNATURE,
+        {
+          expiresIn: 864000000,
+        }
+      );
+      const cookieOptions = {
+        httpOnly: true,
+        maxAge: 1 * 60 * 60 * 24 * 10,
+        sameSite: 'none',
+        secure: true,
+        requireSSL: false,
+      };
+      res.cookie('authorization', token, cookieOptions);
 
       return {
         userErrors: [{ message: '' }],
-        token: JWT.sign(
-          {
-            userId: user.id,
-            email: user.email,
-          },
-          JWT_SIGNATURE,
-          {
-            expiresIn: 360000,
-          }
-        ),
+        token,
         user: user,
       };
     },

@@ -8,4 +8,6 @@ export interface Context {
     profileId: string;
     userId: string;
   } | null;
+  req?: any;
+  res?: any;
 }

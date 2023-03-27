@@ -11,13 +11,22 @@ import { getUserFromToken } from '../graphql/utils/getUserFromToken';
 
 const port: number = 4000;
 
+interface ExpressContext {
+  req: Express.Request;
+  res: Express.Response;
+}
+
 export const startApolloServer = async (app: Express, httpServer: Server) => {
   const server = new ApolloServer({
     schema,
-    context: async ({ req }: any): Promise<Context> => {
+    context: async ({ req, res }: any): Promise<Context> => {
       const userInfo = await getUserFromToken(req.headers.authorization);
+      console.log(req.headers.cookie);
+      res.setHeader('Access-Control-Allow-Origin', 'https://localhost:3333');
+      res.setHeader('Access-Control-Expose-Headers', 'authorization');
+
       // const userInfo = { profileId: '', userId: '' };
-      return { prisma, userInfo };
+      return { prisma, userInfo, res };
     },
     csrfPrevention: true,
 
@@ -28,6 +37,7 @@ export const startApolloServer = async (app: Express, httpServer: Server) => {
   });
 
   await server.start();
+
   server.applyMiddleware({
     app,
     path: '/api/graphql',
