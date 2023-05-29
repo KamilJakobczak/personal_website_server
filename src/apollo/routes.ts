@@ -1,10 +1,20 @@
-import express from 'express';
+import * as express from 'express';
+import { sessionConfig } from '../sessions';
+import { sesssionCheck } from '../utility/sessionCheck';
+import { requireAuth } from '../express';
 
 export const collectionRouter = express.Router();
 
-collectionRouter.use((req, res, next) => {
+collectionRouter.all('/', async (req, res, next) => {
   {
     console.log('Time: ', Date.now());
+    const session = req.session;
+    if (session) {
+      console.log(session);
+    }
+
+    console.log('Session ID from collection router: ', req.sessionID);
+    // console.log('Session from collection router: ', req.session);
 
     next();
   }
@@ -34,4 +44,10 @@ collectionRouter.post('/add/publisher', async (req, res) => {
 collectionRouter.post('/add/collection', async (req, res) => {
   console.log(req.body);
   res.send('new collection');
+});
+
+collectionRouter.get('/logout', (req, res) => {
+  req.session.destroy(err => {
+    res.redirect('/');
+  });
 });

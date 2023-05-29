@@ -1,5 +1,5 @@
 import http from 'http';
-import * as dotenv from 'dotenv';
+import dotenv from 'dotenv';
 import { startApolloServer } from './apollo/apolloServer';
 import { app } from './express';
 // import fs from 'fs';

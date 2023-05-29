@@ -16,7 +16,7 @@ interface SignupArgs {
 }
 interface SigninArgs {
   credentials: {
-    email: string;
+    username: string;
     password: string;
   };
 }
@@ -32,6 +32,8 @@ export const user = gql`
   extend type Query {
     me: User
     user(id: ID!): User!
+   
+    
   }
 
   type Mutation {
@@ -41,6 +43,7 @@ export const user = gql`
       name: String!
       bio: String
     ): SignupPayload!
+    
   }
 
   type User implements Node {
@@ -60,7 +63,7 @@ export const user = gql`
     token: String
   }
   input CredentialsInput {
-    email: String!
+    username: String!
     password: String!
   }
 `;
@@ -98,10 +101,10 @@ export const userResolvers = {
       { credentials }: SigninArgs,
       { prisma, req }: Context
     ): Promise<UserPayload> => {
-      const { email, password } = credentials;
+      const { username, password } = credentials;
       const user = await prisma.user.findUnique({
         where: {
-          email,
+          email: username,
         },
       });
 
@@ -135,12 +138,25 @@ export const userResolvers = {
         { userId: user.id, profileId: profile?.id },
         JWT_SIGNATURE,
         {
-          expiresIn: 360000,
+          expiresIn: 864000000,
         }
       );
 
-      const cookie = req.response.cookie('authorization', token);
-      console.log(cookie);
+      const sessionUser = {
+        id: user.id,
+        profileId: profile?.id,
+        role: user.role,
+      };
+      req.session.user = sessionUser;
+
+      // const cookieOptions = {
+      //   httpOnly: true,
+      //   maxAge: 1000 * 60 * 60 * 24 * 10,
+      //   sameSite: 'none',
+      //   secure: true,
+      //   requireSSL: false,
+      // };
+
       return {
         userErrors: [{ message: '' }],
         token,
@@ -150,7 +166,7 @@ export const userResolvers = {
     signup: async (
       _: any,
       { credentials, name, bio }: SignupArgs,
-      { prisma, res }: Context
+      { prisma, req, res }: Context
     ): Promise<UserPayload> => {
       const { email, password } = credentials;
       const isEmail = validator.isEmail(email);
@@ -230,12 +246,20 @@ export const userResolvers = {
       );
       const cookieOptions = {
         httpOnly: true,
-        maxAge: 1 * 60 * 60 * 24 * 10,
+        maxAge: 1000 * 60 * 60 * 24 * 10,
         sameSite: 'none',
         secure: true,
         requireSSL: false,
       };
-      res.cookie('authorization', token, cookieOptions);
+
+      // res.cookie('authorization', token, cookieOptions);
+      // res.cookie('loggedIn', true, {
+      //   httpOnly: false,
+      //   maxAge: 1000 * 60 * 60 * 24 * 10,
+      //   sameSite: 'none',
+      //   secure: true,
+      //   requireSSL: false,
+      // });
 
       return {
         userErrors: [{ message: '' }],

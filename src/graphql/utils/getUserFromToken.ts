@@ -1,5 +1,5 @@
 import { JWT_SIGNATURE } from '../keys';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 
 export const getUserFromToken = async (token: string) => {
   if (!token) {

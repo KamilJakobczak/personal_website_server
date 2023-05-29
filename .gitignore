@@ -4,3 +4,6 @@ node_modules
 sessions
 keys.ts
 files
+
+key.pem
+cert.pem

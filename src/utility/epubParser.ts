@@ -16,10 +16,10 @@ export interface epubParserData {
       | null;
   } | null;
   genres: { existing: string[] | null; new: string[] | null } | null;
-  publisher: {
-    existing: { id: string; name: string } | null;
-    new: string | null;
-  } | null;
+  // publisher: {
+  //   existing: { id: string; name: string } | null;
+  //   new: string | null;
+  // } | null;
   title: string | null;
   language: string | null;
   cover?: string;
@@ -37,15 +37,14 @@ export const epubParser = async (filepath: string, fileName: string) => {
       const localId = fileName;
 
       const data = epub.metadata;
-
-      const cover = data.cover;
+      const cover = undefined;
+      // const cover = epub.cover;
       const authors = data.creator;
       const description = data.description;
       const genres = data.subject;
-      const publisher = data.publisher;
       const title = data.title;
+      // const publisher = data.publisher;
       const language = data.language;
-      const isbn = data.ISBN;
 
       let parsedData = {
         localId,
@@ -54,8 +53,7 @@ export const epubParser = async (filepath: string, fileName: string) => {
         authors: await findAuthors(authors),
         genres: await findGenres(genres),
         language: await checkLanguage(language),
-        publisher: await findPublisher(publisher),
-        isbn,
+        // publisher: await findPublisher(publisher),
       };
 
       if (cover === undefined) {
@@ -84,6 +82,7 @@ export const epubParser = async (filepath: string, fileName: string) => {
 
       resolve(parsedData);
     });
+
     epub.parse();
   });
 };
