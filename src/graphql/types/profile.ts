@@ -99,22 +99,22 @@ export const profileResolvers = {
     createProfile: async (
       _: any,
       { input }: CreateProfileArgs,
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ): Promise<ProfilePayloadType> => {
       const { bio } = input;
-      if (!userInfo) {
+      if (!req.session.user) {
         return {
           userErrors: [{ message: 'Log in first' }],
           profile: null,
         };
       }
-      const { userId } = userInfo;
+      const { id } = req.session.user;
 
       return {
         userErrors: [{ message: '' }],
         profile: prisma.profile.create({
           data: {
-            userId,
+            userId: id,
             bio,
           },
         }),
@@ -123,15 +123,15 @@ export const profileResolvers = {
     updateProfile: async (
       _: any,
       { input }: UpdateProfileArgs,
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ): Promise<ProfilePayloadType> => {
-      if (!userInfo) {
+      if (!req.session.user) {
         return {
           userErrors: [{ message: 'Log in first' }],
           profile: null,
         };
       }
-      const { profileId } = userInfo;
+      const { profileId } = req.session.user;
       const { bio } = input;
 
       if (!profileId) {
@@ -151,16 +151,16 @@ export const profileResolvers = {
     addBookToShelf: async (
       _: any,
       { id, input }: AddBookToShelfArgs,
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ): Promise<AddBookToShelfPayloadType> => {
-      if (!userInfo) {
+      if (!req.session.user) {
         return {
           userErrors: [{ message: 'Log in first' }],
           profile: null,
           bookDetails: null,
         };
       }
-      const { profileId } = userInfo;
+      const { profileId } = req.session.user;
 
       if (id !== profileId) {
         return {

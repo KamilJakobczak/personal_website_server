@@ -16,15 +16,15 @@ export const sessionConfig = session({
   store: mongoStore,
   secret: process.env.SECRET ? process.env.SECRET : 'dummy_secret', //SET A SERIOUS ONE
   resave: true, // check store spec to set this up correctly
-  saveUninitialized: false,
+  saveUninitialized: true,
   genid: function (req) {
     return uuidv4();
   },
-  name: 'sessionID',
+  name: 'session',
   cookie: {
     httpOnly: true,
-    sameSite: 'none',
-    secure: true,
+    sameSite: 'strict',
+    secure: false,
     maxAge: 1000 * 60 * 60 * 24 * 10,
   },
 });

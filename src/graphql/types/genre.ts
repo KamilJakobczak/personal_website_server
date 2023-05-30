@@ -83,9 +83,9 @@ export const genreResolvers = {
     addGenre: async (
       _: any,
       { input }: GenreArgs,
-      { userInfo, prisma }: Context
+      { req, prisma }: Context
     ): Promise<GenrePayloadType> => {
-      const userAuth = await authCheck({ userInfo, prisma });
+      const userAuth = await authCheck({ req, prisma });
       if (userAuth !== true) {
         return {
           ...userAuth,
@@ -120,11 +120,11 @@ export const genreResolvers = {
     updateGenre: async (
       _: any,
       { id, input }: GenreUpdateArgs,
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ): Promise<GenrePayloadType> => {
       const { name } = input;
 
-      const userAuth = await authCheck({ userInfo, prisma });
+      const userAuth = await authCheck({ req, prisma });
       if (userAuth !== true) {
         return {
           ...userAuth,
@@ -166,10 +166,10 @@ export const genreResolvers = {
     deleteGenre: async (
       _: any,
       { id }: { id: string },
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ): Promise<GenrePayloadType> => {
       const genreNull = { genre: null };
-      const userAuth = await authCheck({ userInfo, prisma });
+      const userAuth = await authCheck({ req, prisma });
       if (userAuth !== true) {
         return {
           ...userAuth,

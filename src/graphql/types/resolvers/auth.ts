@@ -1,15 +1,16 @@
 import { Context } from '../../../prismaClient';
 
-export const authCheck = async ({ userInfo, prisma }: Context) => {
-  if (!userInfo) {
+export const authCheck = async ({ req, prisma }: Context) => {
+  if (!req.session.user) {
     return {
       userErrors: [{ message: 'unauthenticated access' }],
     };
   }
-  const { userId } = userInfo;
+  const { id } = req.session.user;
+
   const user = await prisma.user.findUnique({
     where: {
-      id: userId,
+      id: id,
     },
   });
   if (!user) {

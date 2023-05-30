@@ -99,10 +99,10 @@ export const collectionResolvers = {
     addCollection: async (
       _: any,
       { input }: CollectionArgs,
-      { userInfo, prisma }: Context
+      { req, prisma }: Context
     ): Promise<CollectionPayloadType> => {
       const collectionNull = { collection: null };
-      const userAuth = await authCheck({ userInfo, prisma });
+      const userAuth = await authCheck({ req, prisma });
       if (userAuth !== true) {
         return {
           ...userAuth,
@@ -141,9 +141,9 @@ export const collectionResolvers = {
     deleteCollection: async (
       _: any,
       { id }: { id: string },
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ): Promise<CollectionPayloadType> => {
-      const userAuth = await authCheck({ userInfo, prisma });
+      const userAuth = await authCheck({ req, prisma });
       if (userAuth !== true) {
         return {
           ...userAuth,
@@ -181,11 +181,11 @@ export const collectionResolvers = {
     updateCollection: async (
       _: any,
       { id, input }: CollectionUpdateArgs,
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ): Promise<CollectionPayloadType> => {
       const { name, booksInCollection } = input;
       const { tome, bookId } = booksInCollection;
-      const userAuth = await authCheck({ userInfo, prisma });
+      const userAuth = await authCheck({ req, prisma });
       if (userAuth !== true) {
         return {
           ...userAuth,

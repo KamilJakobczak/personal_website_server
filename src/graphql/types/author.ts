@@ -141,9 +141,10 @@ export const authorResolvers = {
     addAuthor: async (
       _: any,
       { input }: AuthorArgs,
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ): Promise<AuthorPayloadType> => {
-      const authCheckVar = await authCheck({ userInfo, prisma });
+      const authCheckVar = await authCheck({ req, prisma });
+
       if (authCheckVar !== true) {
         return {
           ...authCheckVar,
@@ -211,10 +212,12 @@ export const authorResolvers = {
     deleteAuthor: async (
       _: any,
       { id }: { id: string },
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ): Promise<AuthorPayloadType> => {
       const authorNull = { author: null };
-      const authCheckVar = await authCheck({ userInfo, prisma });
+
+      const authCheckVar = await authCheck({ req, prisma });
+
       if (authCheckVar !== true) {
         return {
           ...authCheckVar,
@@ -237,9 +240,9 @@ export const authorResolvers = {
     updateAuthor: async (
       _: any,
       { id, input }: AuthorUpdateArgs,
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ): Promise<AuthorPayloadType> => {
-      const authCheckVar = await authCheck({ userInfo, prisma });
+      const authCheckVar = await authCheck({ req, prisma });
       if (authCheckVar !== true) {
         return {
           ...authCheckVar,

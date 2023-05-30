@@ -77,11 +77,11 @@ export const translatorResolvers = {
     addTranslator: async (
       _: any,
       { input }: TranslatorArgs,
-      { userInfo, prisma }: Context
+      { req, prisma }: Context
     ): Promise<TranslatorPayloadType> => {
       const { firstName, lastName } = input;
 
-      const userAuth = await authCheck({ userInfo, prisma });
+      const userAuth = await authCheck({ req, prisma });
       if (userAuth !== true) {
         return {
           ...userAuth,
@@ -124,9 +124,9 @@ export const translatorResolvers = {
     deleteTranslator: async (
       _: any,
       { id }: { id: string },
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ): Promise<TranslatorPayloadType> => {
-      const userAuth = await authCheck({ userInfo, prisma });
+      const userAuth = await authCheck({ req, prisma });
       if (userAuth !== true) {
         return {
           ...userAuth,
@@ -162,10 +162,10 @@ export const translatorResolvers = {
     updateTranslator: async (
       _: any,
       { id, input }: TranslatorUpdateArgs,
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ): Promise<TranslatorPayloadType> => {
       const { firstName, lastName } = input;
-      const userAuth = await authCheck({ userInfo, prisma });
+      const userAuth = await authCheck({ req, prisma });
       if (userAuth !== true) {
         return {
           ...userAuth,

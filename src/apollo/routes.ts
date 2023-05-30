@@ -1,7 +1,4 @@
 import * as express from 'express';
-import { sessionConfig } from '../sessions';
-import { sesssionCheck } from '../utility/sessionCheck';
-import { requireAuth } from '../express';
 
 export const collectionRouter = express.Router();
 
@@ -14,7 +11,6 @@ collectionRouter.all('/', async (req, res, next) => {
     }
 
     console.log('Session ID from collection router: ', req.sessionID);
-    // console.log('Session from collection router: ', req.session);
 
     next();
   }

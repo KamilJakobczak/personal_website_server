@@ -2,8 +2,7 @@ import gql from 'graphql-tag';
 import { Context } from '../../prismaClient';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
-import JWT from 'jsonwebtoken';
-import { JWT_SIGNATURE } from '../keys';
+
 import { User, Prisma } from '@prisma/client';
 
 interface SignupArgs {
@@ -21,19 +20,17 @@ interface SigninArgs {
   };
 }
 interface UserPayload {
+  authenticated: boolean;
   userErrors: {
     message: string;
   }[];
-  token: string | null;
   user: User | Prisma.Prisma__UserClient<User> | null;
 }
 
 export const user = gql`
   extend type Query {
     me: User
-    user(id: ID!): User!
-   
-    
+    user(id: ID!): User! 
   }
 
   type Mutation {
@@ -42,8 +39,7 @@ export const user = gql`
       credentials: CredentialsInput!
       name: String!
       bio: String
-    ): SignupPayload!
-    
+    ): AuthPayload!
   }
 
   type User implements Node {
@@ -53,14 +49,11 @@ export const user = gql`
     profile: Profile
   }
 
-  type SignupPayload {
-    userErrors: [userError!]!
-    token: String
-    user: User
-  }
   type AuthPayload {
+    authenticated: Boolean!
     userErrors: [userError!]!
-    token: String
+    user: User
+   
   }
   input CredentialsInput {
     username: String!
@@ -70,13 +63,13 @@ export const user = gql`
 
 export const userResolvers = {
   Query: {
-    me: async (_: any, __: any, { userInfo, prisma }: Context) => {
-      if (!userInfo) {
+    me: async (_: any, __: any, { prisma, req }: Context) => {
+      if (!req.session.user) {
         return null;
       }
       return prisma.user.findUnique({
         where: {
-          id: userInfo.userId,
+          id: req.session.user.id,
         },
       });
     },
@@ -110,8 +103,8 @@ export const userResolvers = {
 
       if (!user) {
         return {
+          authenticated: false,
           userErrors: [{ message: 'Invalid credentials' }],
-          token: null,
           user: null,
         };
       }
@@ -119,12 +112,12 @@ export const userResolvers = {
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
         return {
+          authenticated: false,
           userErrors: [
             {
               message: 'Invalid credentials',
             },
           ],
-          token: null,
           user: null,
         };
       }
@@ -134,14 +127,6 @@ export const userResolvers = {
         },
       });
 
-      const token = JWT.sign(
-        { userId: user.id, profileId: profile?.id },
-        JWT_SIGNATURE,
-        {
-          expiresIn: 864000000,
-        }
-      );
-
       const sessionUser = {
         id: user.id,
         profileId: profile?.id,
@@ -149,24 +134,16 @@ export const userResolvers = {
       };
       req.session.user = sessionUser;
 
-      // const cookieOptions = {
-      //   httpOnly: true,
-      //   maxAge: 1000 * 60 * 60 * 24 * 10,
-      //   sameSite: 'none',
-      //   secure: true,
-      //   requireSSL: false,
-      // };
-
       return {
+        authenticated: true,
         userErrors: [{ message: '' }],
-        token,
-        user: null,
+        user,
       };
     },
     signup: async (
       _: any,
       { credentials, name, bio }: SignupArgs,
-      { prisma, req, res }: Context
+      { prisma, req }: Context
     ): Promise<UserPayload> => {
       const { email, password } = credentials;
       const isEmail = validator.isEmail(email);
@@ -179,20 +156,20 @@ export const userResolvers = {
 
       if (userExists) {
         return {
+          authenticated: false,
           userErrors: [{ message: 'This email is already in use' }],
-          token: null,
           user: null,
         };
       }
 
       if (!isEmail) {
         return {
+          authenticated: false,
           userErrors: [
             {
               message: 'Invalid email',
             },
           ],
-          token: null,
           user: null,
         };
       }
@@ -201,12 +178,12 @@ export const userResolvers = {
 
       if (!isValidPassword) {
         return {
+          authenticated: false,
           userErrors: [
             {
               message: 'Invalid password',
             },
           ],
-          token: null,
           user: null,
         };
       }
@@ -215,12 +192,12 @@ export const userResolvers = {
 
       if (!isValidName) {
         return {
+          authenticated: false,
           userErrors: [
             {
               message: 'Invalid name or bio',
             },
           ],
-          token: null,
           user: null,
         };
       }
@@ -234,36 +211,23 @@ export const userResolvers = {
           password: hashedPassword,
         },
       });
-      const token = JWT.sign(
-        {
-          userId: user.id,
-          email: user.email,
-        },
-        JWT_SIGNATURE,
-        {
-          expiresIn: 864000000,
-        }
-      );
-      const cookieOptions = {
-        httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24 * 10,
-        sameSite: 'none',
-        secure: true,
-        requireSSL: false,
-      };
 
-      // res.cookie('authorization', token, cookieOptions);
-      // res.cookie('loggedIn', true, {
-      //   httpOnly: false,
-      //   maxAge: 1000 * 60 * 60 * 24 * 10,
-      //   sameSite: 'none',
-      //   secure: true,
-      //   requireSSL: false,
-      // });
+      const profile = await prisma.profile.findUnique({
+        where: {
+          userId: user.id,
+        },
+      });
+
+      const sessionUser = {
+        id: user.id,
+        profileId: profile?.id,
+        role: user.role,
+      };
+      req.session.user = sessionUser;
 
       return {
+        authenticated: true,
         userErrors: [{ message: '' }],
-        token,
         user: user,
       };
     },

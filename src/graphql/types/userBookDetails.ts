@@ -137,7 +137,7 @@ export const userBookDetailsResolvers = {
     userBookDetails: async (
       _: any,
       { id, bookId }: { id: string; bookId: string },
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ): Promise<UserBookDetailsPayloadType> => {
       if (!id && !bookId) {
         return {
@@ -145,22 +145,26 @@ export const userBookDetailsResolvers = {
           userBookDetails: null,
         };
       }
-      if (!id && userInfo) {
-        const { profileId } = userInfo;
+
+      const { user } = req.session;
+      if (!id && user) {
+        const { profileId } = user;
         const profile = await prisma.profile.findUnique({
           where: {
             id: profileId,
           },
         });
-        return {
-          userErrors: [{ message: '' }],
-          userBookDetails: await prisma.userBookDetails.findFirst({
-            where: {
-              bookID: bookId,
-              profileID: profileId,
-            },
-          }),
-        };
+        if (profile) {
+          return {
+            userErrors: [{ message: '' }],
+            userBookDetails: await prisma.userBookDetails.findFirst({
+              where: {
+                bookID: bookId,
+                profileID: profileId,
+              },
+            }),
+          };
+        }
       }
       return {
         userErrors: [{ message: '' }],
@@ -192,16 +196,16 @@ export const userBookDetailsResolvers = {
     addUserBookDetails: async (
       _: any,
       { input }: UserBookDetailsArgs,
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ): Promise<UserBookDetailsPayloadType> => {
-      if (!userInfo) {
+      if (!req.session.user) {
         return {
           userErrors: [{ message: 'Log in first' }],
           userBookDetails: null,
         };
       }
       const { bookID, bookDetails } = input;
-      const { profileId } = userInfo;
+      const { profileId } = req.session.user;
       const recordExists = await prisma.userBookDetails.findFirst({
         where: {
           profileID: profileId,
@@ -245,9 +249,9 @@ export const userBookDetailsResolvers = {
     updateUserBookDetails: async (
       _: any,
       { id, input }: UserBookDetailsUpdateArgs,
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ): Promise<UserBookDetailsPayloadType> => {
-      if (!userInfo) {
+      if (!req.session.user) {
         return {
           userErrors: [{ message: 'Log in first' }],
           userBookDetails: null,
@@ -267,7 +271,7 @@ export const userBookDetailsResolvers = {
         };
       }
 
-      if (userBookDetailsRecord.profileID !== userInfo.profileId) {
+      if (userBookDetailsRecord.profileID !== req.session.user.profileId) {
         return {
           userErrors: [{ message: 'Log in to YOUR account' }],
           userBookDetails: null,
@@ -330,9 +334,9 @@ export const userBookDetailsResolvers = {
     deleteUserBookDetails: async (
       _: any,
       { id }: { id: string },
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ): Promise<UserBookDetailsPayloadType> => {
-      if (!userInfo) {
+      if (!req.session.user) {
         return {
           userErrors: [{ message: 'Log in first' }],
           userBookDetails: null,
@@ -352,7 +356,7 @@ export const userBookDetailsResolvers = {
         };
       }
 
-      if (userBookDetailsRecord.profileID !== userInfo.profileId) {
+      if (userBookDetailsRecord.profileID !== req.session.user.profileId) {
         return {
           userErrors: [{ message: 'Log in to YOUR account' }],
           userBookDetails: null,

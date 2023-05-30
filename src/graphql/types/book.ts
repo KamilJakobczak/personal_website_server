@@ -289,10 +289,10 @@ export const bookResolvers = {
     addBook: async (
       _: any,
       { input }: BookArgs,
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ): Promise<BookPayloadType> => {
-      console.log(input);
-      const userAuth = await authCheck({ userInfo, prisma });
+      // console.log(input);
+      const userAuth = await authCheck({ req, prisma });
       if (userAuth !== true) {
         return {
           ...userAuth,
@@ -368,7 +368,7 @@ export const bookResolvers = {
     deleteBook: async (
       _: any,
       { id }: { id: string },
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ): Promise<BookPayloadType> => {
       const bookExists = await prisma.book.findUnique({
         where: {
@@ -384,7 +384,7 @@ export const bookResolvers = {
         };
       }
 
-      const userAuth = await authCheck({ userInfo, prisma });
+      const userAuth = await authCheck({ req, prisma });
       if (userAuth !== true) {
         return {
           ...userAuth,
@@ -408,7 +408,7 @@ export const bookResolvers = {
     updateBook: async (
       _: any,
       { id, input }: BookUpdateArgs,
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ): Promise<BookPayloadType> => {
       const bookExists = await prisma.book.findUnique({
         where: {
@@ -423,7 +423,7 @@ export const bookResolvers = {
           book: null,
         };
       }
-      const userAuth = await authCheck({ userInfo, prisma });
+      const userAuth = await authCheck({ req, prisma });
       if (userAuth !== true) {
         return {
           ...userAuth,

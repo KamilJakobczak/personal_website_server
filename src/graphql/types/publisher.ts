@@ -120,9 +120,9 @@ export const publisherResolvers = {
     addPublisher: async (
       _: any,
       { input }: PublisherArgs,
-      { userInfo, prisma }: Context
+      { req, prisma }: Context
     ): Promise<PublisherPayloadType> => {
-      const userAuth = await authCheck({ userInfo, prisma });
+      const userAuth = await authCheck({ req, prisma });
       if (userAuth !== true) {
         return {
           ...userAuth,
@@ -170,9 +170,9 @@ export const publisherResolvers = {
     deletePublisher: async (
       _: any,
       { id }: { id: string },
-      { prisma, userInfo }: Context
+      { prisma, req }: Context
     ) => {
-      const userAuth = await authCheck({ userInfo, prisma });
+      const userAuth = await authCheck({ req, prisma });
       if (userAuth !== true) {
         return {
           ...userAuth,
@@ -210,9 +210,9 @@ export const publisherResolvers = {
     updatePublisher: async (
       _: any,
       { id, input }: PublisherUpdateArgs,
-      { userInfo, prisma }: Context
+      { req, prisma }: Context
     ) => {
-      const userAuth = await authCheck({ userInfo, prisma });
+      const userAuth = await authCheck({ req, prisma });
       if (userAuth !== true) {
         return {
           ...userAuth,
