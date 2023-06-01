@@ -5,19 +5,22 @@ import bcrypt from 'bcryptjs';
 
 import { User, Prisma } from '@prisma/client';
 
+enum ROLE {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+}
+type Credentials = {
+  email: string;
+  password: string;
+};
+
 interface SignupArgs {
-  credentials: {
-    email: string;
-    password: string;
-  };
+  credentials: Credentials;
   name: string;
   bio: string;
 }
 interface SigninArgs {
-  credentials: {
-    username: string;
-    password: string;
-  };
+  credentials: Credentials;
 }
 interface UserPayload {
   authenticated: boolean;
@@ -26,52 +29,89 @@ interface UserPayload {
   }[];
   user: User | Prisma.Prisma__UserClient<User> | null;
 }
+interface AuthPayload {
+  authenticated: boolean;
+  userErrors: {
+    message: string;
+  }[];
+  user: {
+    id: string;
+    profileId: string;
+    role: ROLE;
+  } | null;
+}
 
 export const user = gql`
   extend type Query {
-    me: User
+    checkLogin: AuthPayload!
     user(id: ID!): User! 
   }
 
   type Mutation {
-    signin(credentials: CredentialsInput!): AuthPayload!
+    signin(credentials: CredentialsInput!): UserPayload!
     signup(
       credentials: CredentialsInput!
       name: String!
       bio: String
-    ): AuthPayload!
+    ): UserPayload!
+    signout:AuthPayload!
   }
 
   type User implements Node {
     id: ID!
     name: String
+    role: ROLE
     email: String!
     profile: Profile
+  }
+
+  type UserPayload {
+    authenticated: Boolean!
+    userErrors: [userError!]!
+    user: User
   }
 
   type AuthPayload {
     authenticated: Boolean!
     userErrors: [userError!]!
-    user: User
+    user: sessionUser
    
   }
+  type sessionUser {
+    id: String
+    profileId: String
+    role: String
+  }
   input CredentialsInput {
-    username: String!
+    email: String!
     password: String!
+  }
+  enum ROLE {
+    ADMIN
+    USER
   }
 `;
 
 export const userResolvers = {
   Query: {
-    me: async (_: any, __: any, { prisma, req }: Context) => {
-      if (!req.session.user) {
-        return null;
+    checkLogin: async (
+      _: any,
+      __: any,
+      { req }: Context
+    ): Promise<AuthPayload> => {
+      if (req.session.user) {
+        console.log(req.session.user);
+        return {
+          authenticated: true,
+          userErrors: [{ message: '' }],
+          user: req.session.user,
+        };
       }
-      return prisma.user.findUnique({
-        where: {
-          id: req.session.user.id,
-        },
-      });
+      return {
+        authenticated: false,
+        userErrors: [{ message: '' }],
+        user: null,
+      };
     },
     user: async (_: any, { id }: { id: string }, { prisma }: Context) => {
       return prisma.user.findUnique({
@@ -94,10 +134,10 @@ export const userResolvers = {
       { credentials }: SigninArgs,
       { prisma, req }: Context
     ): Promise<UserPayload> => {
-      const { username, password } = credentials;
+      const { email, password } = credentials;
       const user = await prisma.user.findUnique({
         where: {
-          email: username,
+          email: email,
         },
       });
 
@@ -229,6 +269,19 @@ export const userResolvers = {
         authenticated: true,
         userErrors: [{ message: '' }],
         user: user,
+      };
+    },
+    signout: async (
+      _: any,
+      __: any,
+      { req }: Context
+    ): Promise<AuthPayload> => {
+      req.session.destroy();
+
+      return {
+        authenticated: false,
+        userErrors: [{ message: '' }],
+        user: null,
       };
     },
   },
