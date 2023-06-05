@@ -4,7 +4,7 @@ import { Context } from '../../prismaClient';
 
 export const profile = gql`
   extend type Query {
-    profile(id: ID!): Profile
+    profile(id: ID!): Profile!
     profiles: [Profile!]!
   }
 
@@ -71,12 +71,18 @@ interface AddBookToShelfPayloadType {
 
 export const profileResolvers = {
   Query: {
-    profile: async (_: any, { id }: { id: string }, { prisma }: Context) => {
-      return prisma.profile.findUnique({
-        where: {
-          id,
-        },
-      });
+    profile: async (
+      _: any,
+      { id }: { id: string },
+      { prisma, req }: Context
+    ) => {
+      if (req.session && req.session.user) {
+        return prisma.profile.findUnique({
+          where: {
+            id: req.session.user.profileId,
+          },
+        });
+      }
     },
     profiles: async (_: any, __: any, { prisma }: Context) => {
       return prisma.profile.findMany();
@@ -84,7 +90,11 @@ export const profileResolvers = {
   },
   Profile: {
     booksRead: () => {},
-    isMyProfile: () => {},
+    isMyProfile: async (_: any, { id }: { id: string }, { req }: Context) => {
+      if (req.session.user.profileId === id) {
+        return true;
+      } else return false;
+    },
     user: async ({ id }: { id: string }, __: any, { prisma }: Context) => {
       const profile = await prisma.profile.findUnique({ where: { id } });
 
@@ -177,7 +187,7 @@ export const profileResolvers = {
             id,
           },
           data: {
-            shelfBooksIDs: {
+            booksInLibraryIDs: {
               push: input.addBookRead,
             },
           },

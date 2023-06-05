@@ -87,27 +87,29 @@ model Author {
 }
 
 model Book {
-  id             String       @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  title          String
-  language       Language     @default(Polish)
-  pages          Int
-  covers         Covers?
-  isbn           String       @unique
-  firstEdition   Int
-  authorIDs      String[]     @db.ObjectId
-  author         Author[]     @relation(fields: [authorIDs], references: [id])
-  collectionIDs  String[]     @db.ObjectId
-  collections    Collection[] @relation(fields: [collectionIDs], references: [id])
-  genreIDs       String[]     @db.ObjectId
-  genres         Genre[]      @relation("Genres", fields: [genreIDs], references: [id])
-  publisherID    String       @db.ObjectId
-  publisher      Publisher    @relation(fields: [publisherID], references: [id])
-  translatorIDs  String[]     @db.ObjectId
-  translator     Translator[] @relation(fields: [translatorIDs], references: [id])
-  usersIDs       String[]     @db.ObjectId
-  shelvedByUsers Profile[]    @relation(fields: [usersIDs], references: [id])
+  id                   String             @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  title                String
+  language             Language           @default(Polish)
+  pages                Int
+  covers               Covers?
+  isbn                 String             @unique
+  firstEdition         Int
+  authorIDs            String[]           @db.ObjectId
+  author               Author[]           @relation(fields: [authorIDs], references: [id])
+  collectionIDs        String[]           @db.ObjectId
+  collections          Collection[]       @relation(fields: [collectionIDs], references: [id])
+  genreIDs             String[]           @db.ObjectId
+  genres               Genre[]            @relation("Genres", fields: [genreIDs], references: [id])
+  publisherID          String             @db.ObjectId
+  publisher            Publisher          @relation(fields: [publisherID], references: [id])
+  translatorIDs        String[]           @db.ObjectId
+  translator           Translator[]       @relation(fields: [translatorIDs], references: [id])
+  usersIDs             String[]           @db.ObjectId
+  shelvedByUsers       Profile[]          @relation(fields: [usersIDs], references: [id])
+  customCollectionsIDs String[]           @db.ObjectId
+  customCollections    CustomCollection[] @relation(fields: [customCollectionsIDs], references: [id])
 }
 
 type BookInCollection {
@@ -168,16 +170,17 @@ model User {
 }
 
 model Profile {
-  id                String            @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  id                String             @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
   bio               String
-  userId            String            @unique @db.ObjectId
-  user              User              @relation(name: "User", fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  family            User[]            @relation(name: "Family")
-  shelfBooksIDs     String[]          @db.ObjectId
-  personalBookShelf Book[]            @relation(fields: [shelfBooksIDs], references: [id])
+  userId            String             @unique @db.ObjectId
+  user              User               @relation(name: "User", fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  family            User[]             @relation(name: "Family")
+  booksInLibraryIDs String[]           @db.ObjectId
+  booksLibrary      Book[]             @relation(fields: [booksInLibraryIDs], references: [id])
   UserBookDetails   UserBookDetails[]
+  customCollections CustomCollection[]
 }
 
 model UserBookDetails {
@@ -192,4 +195,14 @@ model UserBookDetails {
   rating    Int?
   currency  Currency?
   buyPrice  Int?
+}
+
+model CustomCollection {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  profileID String   @unique @db.ObjectId
+  profile   Profile  @relation(fields: [profileID], references: [id])
+  booksIDs  String[] @db.ObjectId
+  books     Book[]   @relation(fields: [booksIDs], references: [id])
+  published    Boolean
 }

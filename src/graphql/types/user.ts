@@ -54,7 +54,7 @@ export const user = gql`
       name: String!
       bio: String
     ): UserPayload!
-    signout:AuthPayload!
+    signout: AuthPayload!
   }
 
   type User implements Node {
@@ -274,9 +274,27 @@ export const userResolvers = {
     signout: async (
       _: any,
       __: any,
-      { req }: Context
+      { req, res }: Context
     ): Promise<AuthPayload> => {
-      req.session.destroy();
+      if (req.session && req.session.user) {
+        req.session.destroy((err: any) => {
+          if (err) {
+            console.log(err);
+            return {
+              authenticated: false,
+              userErrors: [{ message: err }],
+              user: null,
+            };
+          } else {
+          }
+        });
+      } else {
+        return {
+          authenticated: false,
+          userErrors: [{ message: "You can't do that" }],
+          user: null,
+        };
+      }
 
       return {
         authenticated: false,

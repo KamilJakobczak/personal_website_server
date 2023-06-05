@@ -101,12 +101,13 @@ export const collectionResolvers = {
       { input }: CollectionArgs,
       { req, prisma }: Context
     ): Promise<CollectionPayloadType> => {
-      const collectionNull = { collection: null };
+      // const collectionNull = { collection: null };
       const userAuth = await authCheck({ req, prisma });
+
       if (userAuth !== true) {
         return {
           ...userAuth,
-          ...collectionNull,
+          ...{ collection: null },
         };
       }
       const { name, booksInCollection } = input;
