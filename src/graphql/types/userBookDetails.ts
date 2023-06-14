@@ -1,6 +1,7 @@
 import {
   CoverType,
   Currency,
+  Edition,
   Prisma,
   Status,
   UserBookDetails,
@@ -26,39 +27,41 @@ export const userBookDetails = gql`
     id: ID!
     book: Book!
     profile: Profile!
-    editions: Editions
     status: Status
-    coverType: CoverType
     whenRead: Int
-    currency: Currencies
-    buyPrice: Float
     rating: Int
+    purchasedBookInfo: PurchasedBookInfo
   }
 
-  type CoverType {
-    paperback: String
-    hardcover: String
-    ebook: String
+  type PurchasedBookInfo {
+    coverType: CoverType!
+    edition: Edition
+    buyPrice: Int
+    currency: Currencies
+
   }
-  input CoverTypeInput {
-    paperback: String
-    hardcover: String
-    ebook: String
-  }
+  # type CoverType {
+  #   paperback: String
+  #   hardcover: String
+  #   ebook: String
+  # }
+  # input CoverTypeInput {
+  #   paperback: String
+  #   hardcover: String
+  #   ebook: String
+  # }
 
   type UserBookDetailsPayload {
     userErrors: [userError!]!
     userBookDetails: UserBookDetails
   }
+
   input bookDetails {
-    editions: editionsInput
     status: Status
-    coverType: CoverTypeInput
     whenRead: Int
-    currency: Currencies
-    buyPrice: Float
     rating: Int
-  }
+    purchasedBookInfo: PurchasedBookInfo
+     }
 
   input addUserBookDetailsInput {
     bookID: String!
@@ -67,13 +70,18 @@ export const userBookDetails = gql`
   input updateUserBookDetailsInput {
     bookDetails: bookDetails
   }
-  input editionsInput {
-    myEditionNumber: Int
-    myEditionYear: Int
+  input editionInput {
+    editionNumber: Int
+    editionYear: Int
   }
-  type Editions {
-    myEditionNumber: Int
-    myEditionYear: Int
+  type Edition {
+    editionNumber: Int
+    editionYear: Int
+  }
+  enum CoverType {
+    PAPERBACK
+    HARDCOVER
+    EBOOK
   }
   enum Currencies {
     USD
@@ -93,16 +101,17 @@ interface UserBookDetailsArgs {
     bookID: string;
     profileID: string;
     bookDetails: {
-      editions?: {
-        myEditionNumber: number;
-        myEditionYear: number;
-      };
-      coverType?: CoverType;
       status?: Status;
       whenRead?: number;
-      currency?: Currency;
-      buyPrice?: number;
       rating?: number;
+      purchasedBookInfo?: [
+        {
+          coverType: CoverType;
+          edition?: Edition;
+          buyPrice?: number;
+          currency?: Currency;
+        }
+      ];
     };
   };
 }
@@ -110,16 +119,17 @@ interface UserBookDetailsUpdateArgs {
   id: string;
   input: {
     bookDetails: {
-      editions?: {
-        myEditionNumber: number;
-        myEditionYear: number;
-      };
       status?: Status;
-      coverType?: CoverType;
       whenRead?: number;
-      currency?: Currency;
-      buyPrice?: number;
       rating?: number;
+      purchasedBookInfo?: [
+        {
+          coverType: CoverType;
+          edition?: Edition;
+          buyPrice?: number;
+          currency?: Currency;
+        }
+      ];
     };
   };
 }
@@ -214,20 +224,12 @@ export const userBookDetailsResolvers = {
       });
       if (recordExists) {
         return {
-          userErrors: [{ message: 'Record was already created' }],
+          userErrors: [{ message: 'Record already created' }],
           userBookDetails: recordExists,
         };
       }
 
-      const {
-        status,
-        editions,
-        currency,
-        rating,
-        buyPrice,
-        whenRead,
-        coverType,
-      } = bookDetails;
+      const { status, rating, whenRead, purchasedBookInfo } = bookDetails;
 
       return {
         userErrors: [{ message: '' }],
@@ -235,13 +237,10 @@ export const userBookDetailsResolvers = {
           data: {
             profileID: profileId,
             bookID,
-            editions,
-            currency,
             status,
             whenRead,
-            buyPrice,
             rating,
-            coverType,
+            purchasedBookInfo,
           },
         }),
       };
@@ -278,34 +277,15 @@ export const userBookDetailsResolvers = {
         };
       }
       const { bookDetails } = input;
-      const {
-        editions,
-        currency,
-        status,
-        buyPrice,
-        rating,
-        whenRead,
-        coverType,
-      } = bookDetails;
+      const { status, rating, whenRead, purchasedBookInfo } = bookDetails;
 
       let payloadToUpdate = {
-        editions,
-        currency,
         status,
-        buyPrice,
         rating,
         whenRead,
-        coverType,
+        purchasedBookInfo,
       };
-      if (!buyPrice) {
-        delete payloadToUpdate.buyPrice;
-      }
-      if (!currency) {
-        delete payloadToUpdate.currency;
-      }
-      if (!editions) {
-        delete payloadToUpdate.editions;
-      }
+
       if (!status) {
         delete payloadToUpdate.status;
       }
@@ -315,8 +295,8 @@ export const userBookDetailsResolvers = {
       if (!whenRead) {
         delete payloadToUpdate.whenRead;
       }
-      if (!coverType) {
-        delete payloadToUpdate.coverType;
+      if (!purchasedBookInfo) {
+        delete payloadToUpdate.purchasedBookInfo;
       }
 
       return {

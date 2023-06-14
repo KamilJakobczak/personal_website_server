@@ -30,13 +30,13 @@ type Covers {
   small    String
 }
 
-type CoverType {
-  paperback String?
-  hardcover String?
-  ebook     String?
-}
+// type CoverType {
+//   paperback Boolean
+//   hardcover Boolean
+//   ebook     Boolean
+// }
 
-type Editions {
+type Edition {
   myEditionNumber Int?
   myEditionYear   Int?
 }
@@ -45,6 +45,18 @@ type BioPages {
   wiki         String?
   goodreads    String?
   lubimyczytac String?
+}
+type PurchasedBookInfo {
+  coverType   CoverType
+  edition     Edition?
+  buyPrice    Int?
+  currency    Currency?
+}
+
+enum CoverType {
+  PAPERBACK
+  HARDCOVER
+  EBOOK
 }
 
 enum Role {
@@ -179,8 +191,8 @@ model Profile {
   family            User[]             @relation(name: "Family")
   booksInLibraryIDs String[]           @db.ObjectId
   booksLibrary      Book[]             @relation(fields: [booksInLibraryIDs], references: [id])
-  UserBookDetails   UserBookDetails[]
-  customCollections CustomCollection[]
+  userBookDetails   UserBookDetails[]
+  customCollections CustomCollection[] 
 }
 
 model UserBookDetails {
@@ -188,13 +200,14 @@ model UserBookDetails {
   bookID    String     @db.ObjectId
   profileID String     @db.ObjectId
   profile   Profile    @relation(fields: [profileID], references: [id])
-  coverType CoverType?
-  editions  Editions?
   status    Status?
   whenRead  Int?
   rating    Int?
-  currency  Currency?
-  buyPrice  Int?
+  purchasedBookInfo   PurchasedBookInfo[]
+  
+ 
+
+
 }
 
 model CustomCollection {
