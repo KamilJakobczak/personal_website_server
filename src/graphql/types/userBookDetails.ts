@@ -30,7 +30,7 @@ export const userBookDetails = gql`
     status: Status
     whenRead: Int
     rating: Int
-    purchasedBookInfo: PurchasedBookInfo
+    purchasedBookInfo: [PurchasedBookInfo]!
   }
 
   type PurchasedBookInfo {
@@ -56,19 +56,26 @@ export const userBookDetails = gql`
     userBookDetails: UserBookDetails
   }
 
-  input bookDetails {
+  input bookDetailsInput {
     status: Status
     whenRead: Int
     rating: Int
-    purchasedBookInfo: PurchasedBookInfo
-     }
+    purchasedBookInfo: [purchasedBookInfoInput]
+  }
 
+  input purchasedBookInfoInput{
+    coverType: CoverType!
+    edition: editionInput
+    buyPrice: Int
+    currency: Currencies
+  }
+  
   input addUserBookDetailsInput {
     bookID: String!
-    bookDetails: bookDetails
+    bookDetails: bookDetailsInput
   }
   input updateUserBookDetailsInput {
-    bookDetails: bookDetails
+    bookDetails: bookDetailsInput
   }
   input editionInput {
     editionNumber: Int

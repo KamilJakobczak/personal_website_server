@@ -37,8 +37,8 @@ type Covers {
 // }
 
 type Edition {
-  myEditionNumber Int?
-  myEditionYear   Int?
+  editionNumber Int?
+  editionYear   Int?
 }
 
 type BioPages {
