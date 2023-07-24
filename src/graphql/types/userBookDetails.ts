@@ -11,7 +11,7 @@ import { Context } from '../../prismaClient';
 
 export const userBookDetails = gql`
   extend type Query {
-    userBookDetails(id: ID, bookId: ID): UserBookDetailsPayload!
+    userBookDetails(bookId: ID!): UserBookDetailsPayload!
     userBooksDetails: [UserBookDetails!]!
   }
   type Mutation {
@@ -153,18 +153,19 @@ export const userBookDetailsResolvers = {
   Query: {
     userBookDetails: async (
       _: any,
-      { id, bookId }: { id: string; bookId: string },
+      { bookId }: { bookId: string },
       { prisma, req }: Context
     ): Promise<UserBookDetailsPayloadType> => {
-      if (!id && !bookId) {
-        return {
-          userErrors: [{ message: 'Provide a valid id' }],
-          userBookDetails: null,
-        };
-      }
+      // if (!id && !bookId) {
+      //   return {
+      //     userErrors: [{ message: 'Provide a valid id' }],
+      //     userBookDetails: null,
+      //   };
+      // }
 
       const { user } = req.session;
-      if (!id && user) {
+
+      if (user) {
         const { profileId } = user;
         const profile = await prisma.profile.findUnique({
           where: {
@@ -172,25 +173,38 @@ export const userBookDetailsResolvers = {
           },
         });
         if (profile) {
-          return {
-            userErrors: [{ message: '' }],
-            userBookDetails: await prisma.userBookDetails.findFirst({
-              where: {
-                bookID: bookId,
-                profileID: profileId,
-              },
-            }),
-          };
+          const record = await prisma.userBookDetails.findFirst({
+            where: {
+              bookID: bookId,
+              profileID: profileId,
+            },
+          });
+          if (record) {
+            console.log(record);
+            return {
+              userErrors: [{ message: '' }],
+              userBookDetails: record,
+            };
+          } else
+            return {
+              userErrors: [{ message: '' }],
+              userBookDetails: null,
+            };
         }
       }
       return {
-        userErrors: [{ message: '' }],
-        userBookDetails: await prisma.userBookDetails.findUnique({
-          where: {
-            id,
-          },
-        }),
+        userErrors: [{ message: 'User not logged in' }],
+        userBookDetails: null,
       };
+
+      // return {
+      //   userErrors: [{ message: '' }],
+      //   userBookDetails: await prisma.userBookDetails.findUnique({
+      //     where: {
+      //       id,
+      //     },
+      //   }),
+      // };
     },
   },
   UserBookDetails: {

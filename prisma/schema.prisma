@@ -215,6 +215,7 @@ model CustomCollection {
   name      String
   profileID String   @unique @db.ObjectId
   profile   Profile  @relation(fields: [profileID], references: [id])
+  
   booksIDs  String[] @db.ObjectId
   books     Book[]   @relation(fields: [booksIDs], references: [id])
   published    Boolean
