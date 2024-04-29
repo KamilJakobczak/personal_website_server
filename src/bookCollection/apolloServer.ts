@@ -3,7 +3,7 @@ import { ApolloServer } from 'apollo-server-express';
 import { Express } from 'express';
 
 import { Server } from 'http';
-import { prisma, Context } from '../prismaClient';
+import { prisma, Context } from './prismaClient';
 import schema from '../graphql/schema';
 
 const port: string = process.env.PORT || '4000';

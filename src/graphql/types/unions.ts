@@ -1,5 +1,5 @@
 import { gql } from 'apollo-server';
-import { Context } from '../../prismaClient';
+import { Context } from '../../bookCollection/prismaClient';
 
 export const searchableUnion = gql`
   extend type Query {

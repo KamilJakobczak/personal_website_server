@@ -1,5 +1,5 @@
 import gql from 'graphql-tag';
-import { Context } from '../../prismaClient';
+import { Context } from '../../bookCollection/prismaClient';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
 

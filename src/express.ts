@@ -1,12 +1,13 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import { codingProjectRouter, codingSessions } from './routes';
-import { collectionRouter } from './apollo/routes';
-import { imagesRouter } from './apollo/imagesRouter';
-import { uploadRouter } from './apollo/uploadRouter';
+import { codingProjectRouter } from './codingPlayground/routes';
+import { codingSessions } from './codingPlayground/sessions';
+import { collectionRouter } from './bookCollection/routes';
+import { imagesRouter } from './bookCollection/imagesRouter';
+import { uploadRouter } from './bookCollection/uploadRouter';
 
-import { sessionConfig } from './sessions';
+import { bookSessions } from './bookCollection/sessions';
 
 export const app = express();
 
@@ -23,7 +24,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use('/api/images', imagesRouter);
 
-app.use('/api/graphql', sessionConfig, collectionRouter);
+app.use('/api/graphql', bookSessions, collectionRouter);
 
 app.use('/api/upload', uploadRouter);
 app.use(

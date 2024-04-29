@@ -1,6 +1,6 @@
 import { Prisma, prisma, Profile, UserBookDetails } from '@prisma/client';
 import gql from 'graphql-tag';
-import { Context } from '../../prismaClient';
+import { Context } from '../../bookCollection/prismaClient';
 
 export const profile = gql`
   extend type Query {

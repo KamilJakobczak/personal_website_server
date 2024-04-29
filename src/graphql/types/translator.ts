@@ -1,6 +1,6 @@
 import { Prisma, Translator } from '@prisma/client';
 import gql from 'graphql-tag';
-import { Context } from '../../prismaClient';
+import { Context } from '../../bookCollection/prismaClient';
 import { authCheck } from './resolvers/auth';
 export const translator = gql`
   extend type Query {

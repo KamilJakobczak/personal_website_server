@@ -13,7 +13,7 @@ const mongoStore = MongoStore.create({
   crypto: { secret: 'asdasdasd' }, //SET A SERIOUS ONE
 });
 
-export const sessionConfig = session({
+export const bookSessions = session({
   store: mongoStore,
   secret: process.env.SECRET ? process.env.SECRET : 'dummy_secret', //SET A SERIOUS ONE
   resave: true, // check store spec to set this up correctly

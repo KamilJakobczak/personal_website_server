@@ -7,7 +7,7 @@ import {
   UserBookDetails,
 } from '@prisma/client';
 import gql from 'graphql-tag';
-import { Context } from '../../prismaClient';
+import { Context } from '../../bookCollection/prismaClient';
 
 export const userBookDetails = gql`
   extend type Query {

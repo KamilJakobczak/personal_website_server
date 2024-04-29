@@ -1,4 +1,4 @@
-import { Context } from '../../../prismaClient';
+import { Context } from '../../../bookCollection/prismaClient';
 
 export const authCheck = async ({ req, prisma }: Context) => {
   if (!req.session.user) {

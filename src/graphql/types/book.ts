@@ -7,7 +7,7 @@ import {
   Publisher,
 } from '@prisma/client';
 import gql from 'graphql-tag';
-import { Context } from '../../prismaClient';
+import { Context } from '../../bookCollection/prismaClient';
 import { authCheck } from './resolvers/auth';
 
 interface BooksQueryArgs {

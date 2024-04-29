@@ -1,7 +1,7 @@
 import EPub from 'epub';
 import path from 'path';
 import fs from 'fs';
-import { prisma } from '../prismaClient';
+import { prisma } from '../bookCollection/prismaClient';
 
 export interface epubParserData {
   authors: {
