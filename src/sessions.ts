@@ -3,8 +3,9 @@ import { v4 as uuidv4 } from 'uuid';
 import MongoStore from 'connect-mongo';
 
 const mongoStore = MongoStore.create({
-  mongoUrl: 'mongodb://localhost:27017/sessions?retryWrites=true&w=majority',
-  // 'mongodb+srv://jamardracken:ZdZtNR9jwoqbhRyO@cluster0.0d3ymvv.mongodb.net/sessions?retryWrites=true&w=majority',
+  mongoUrl:
+    'mongodb+srv://jamardracken:ZdZtNR9jwoqbhRyO@cluster0.0d3ymvv.mongodb.net/sessions?retryWrites=true&w=majority',
+  // 'mongodb://localhost:27017/sessions?retryWrites=true&w=majority'
   collectionName: 'sessions',
   autoRemove: 'interval',
   autoRemoveInterval: 10,
@@ -18,6 +19,7 @@ export const sessionConfig = session({
   resave: true, // check store spec to set this up correctly
   saveUninitialized: true,
   genid: function (req) {
+    console.log(req.sessionID);
     return uuidv4();
   },
   name: 'session',

@@ -1,6 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import { createCellsRouter } from './routes';
+import cors from 'cors';
+import { codingProjectRouter, codingSessions } from './routes';
 import { collectionRouter } from './apollo/routes';
 import { imagesRouter } from './apollo/imagesRouter';
 import { uploadRouter } from './apollo/uploadRouter';
@@ -17,21 +18,20 @@ app.use(function (req, res, next) {
   }
 });
 
-// export const requireAuth = (req: any, res: any, next: any) => {
-//   const { user } = req.session;
-//   if (!user) {
-//     return res.status(401).json({ message: 'not logged in' });
-//   }
-//   next();
-// };
-
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use('/api/projects/coding', createCellsRouter());
+
 app.use('/api/images', imagesRouter);
 
-app.use(sessionConfig);
-
-app.use('/api/graphql', collectionRouter);
+app.use('/api/graphql', sessionConfig, collectionRouter);
 
 app.use('/api/upload', uploadRouter);
+app.use(
+  cors({
+    origin: 'https://localhost:3000',
+    methods: ['POST', 'GET', 'PUT', 'OPTIONS', 'HEAD'],
+    credentials: true,
+  })
+);
+// app.use(cors);
+app.use('/api/projects/coding', codingSessions, codingProjectRouter);
