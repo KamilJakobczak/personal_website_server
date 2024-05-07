@@ -12,7 +12,7 @@ interface LocalApiError {
   code: string;
 }
 
-const sessionDir = path.join(__dirname, '..', 'sessions');
+const sessionDir = path.join(__dirname, '..', '..', 'sessions');
 export const codingProjectRouter = express.Router();
 
 codingProjectRouter.all('/', async (req, res, next) => {
@@ -21,17 +21,34 @@ codingProjectRouter.all('/', async (req, res, next) => {
   next();
 });
 
+codingProjectRouter.post('/cells/session', async (req: any, res) => {
+  const id = req.sessionID;
+  const sessionPath = path.join(sessionDir, id);
+
+  await fs.writeFile(`${sessionPath}.json`, '');
+
+  const data = {
+    sessionId: id,
+    autosave: true,
+  };
+  req.session.user = data;
+  res.send(data);
+});
+
 codingProjectRouter.get('/cells/session', async (req: any, res) => {
   const id = req.sessionID;
-  console.log(id);
   const sessionPath = path.join(sessionDir, id);
+
   if (!sessionPath) {
-    fs.writeFile(`${sessionPath}.json`, '');
+    await fs.writeFile(`${sessionPath}.json`, '');
   }
 
   const data = {
     sessionId: id,
+    autosave: true,
   };
+
+  req.session.user = data;
   res.send(data);
 });
 
@@ -40,14 +57,12 @@ codingProjectRouter.get('/cells/:sessionId', async (req, res) => {
     return typeof err.code === 'string';
   };
   const { sessionId } = req.params;
-
   if (sessionId) {
     const filePath = path.join(sessionDir, sessionId);
     try {
       const result = await fs.readFile(`${filePath}.json`, {
         encoding: 'utf-8',
       });
-
       console.log(result);
       res.send(JSON.parse(result));
     } catch (err) {
