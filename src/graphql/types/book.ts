@@ -157,13 +157,20 @@ export const bookResolvers = {
       if (input) {
         const { filter } = input;
         const { genres, publishers } = filter;
-        console.log(genres, publishers);
+        console.log('AAAAA', genres, publishers);
         if (genres && publishers.length === 0) {
           const books = await prisma.book.findMany({
             where: {
               genreIDs: {
                 hasSome: genres,
               },
+            },
+          });
+          return books;
+        } else if (genres.length === 0 && publishers) {
+          const books = await prisma.book.findMany({
+            where: {
+              publisherID: { in: publishers },
             },
           });
           return books;
@@ -176,18 +183,6 @@ export const bookResolvers = {
                 hasSome: genres,
               },
               AND: {
-                publisherID: { in: publishers },
-              },
-            },
-          });
-          return books;
-        } else {
-          const books = await prisma.book.findMany({
-            where: {
-              genreIDs: {
-                hasSome: genres,
-              },
-              OR: {
                 publisherID: { in: publishers },
               },
             },

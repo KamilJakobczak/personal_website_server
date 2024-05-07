@@ -65,7 +65,13 @@ export const genreResolvers = {
       });
     },
     genres: (_: any, __: any, { prisma }: Context) => {
-      return prisma.genre.findMany();
+      return prisma.genre.findMany({
+        orderBy: [
+          {
+            name: 'asc',
+          },
+        ],
+      });
     },
   },
   Genre: {
