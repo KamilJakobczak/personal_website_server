@@ -157,7 +157,7 @@ export const bookResolvers = {
       if (input) {
         const { filter } = input;
         const { genres, publishers } = filter;
-        console.log('AAAAA', genres, publishers);
+
         if (genres && publishers.length === 0) {
           const books = await prisma.book.findMany({
             where: {
@@ -190,7 +190,11 @@ export const bookResolvers = {
           return books;
         }
       } else {
-        return prisma.book.findMany();
+        return prisma.book.findMany({
+          orderBy: {
+            title: 'asc',
+          },
+        });
       }
     },
   },
