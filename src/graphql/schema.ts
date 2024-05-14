@@ -22,6 +22,7 @@ import {
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import gql from 'graphql-tag';
 import { collection, collectionResolvers } from './types/collection';
+
 gql;
 
 const Query = gql`

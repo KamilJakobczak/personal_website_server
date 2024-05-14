@@ -3,6 +3,7 @@ import path from 'path';
 import { coverResize } from '../utility/coverResize';
 import fs from 'fs';
 import sharp from 'sharp';
+import multer from 'multer';
 
 export const imagesRouter = express.Router();
 const imagesDir = path.join(__dirname, '..', '..', 'files', 'images');
@@ -10,7 +11,7 @@ const imagesDir = path.join(__dirname, '..', '..', 'files', 'images');
 imagesRouter.use((req, res, next) => {
   {
     console.log('Time: ', Date.now());
-
+    res.header('Access-Control-Allow-Origin', 'https://localhost:3000');
     next();
   }
 });
@@ -23,7 +24,7 @@ imagesRouter.get('/covers/:bookId/:size', async (req, res) => {
   const bookDirExists = fs.existsSync(bookDir);
 
   if (!bookDirExists) {
-    res.send('no covers available for this one');
+    res.send('no cover');
     res.end();
     return;
   }
@@ -65,9 +66,9 @@ imagesRouter.get('/covers/:bookId/:size', async (req, res) => {
   } else if (size === 'medium') {
     if (originalHeight && smallHeight) {
       if (originalHeight > smallHeight) {
-        res.send(originalPath);
+        res.sendFile(originalPath);
       } else {
-        res.send(smallPath);
+        res.sendFile(smallPath);
       }
     }
   } else {
@@ -86,3 +87,39 @@ imagesRouter.get('/uploaded/covers/:id', async (req, res) => {
     res.sendFile(filePath);
   }
 });
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(imagesDir, 'temp', 'covers'));
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+const upload = multer({ storage });
+
+imagesRouter.post(
+  '/uploaded/covers',
+  upload.single('file'),
+  async (req, res) => {
+    const coversPath = path.join(imagesDir, 'covers');
+    const { id } = req.body;
+    const cover = req.file;
+    const coverDir = path.join(coversPath, id);
+    if (cover) {
+      const coverPath = path.join(coversPath, id, 'original.jpg');
+      try {
+        if (!fs.existsSync(coverDir)) {
+          fs.mkdirSync(coverDir);
+        }
+        if (!fs.existsSync(coverPath)) {
+          await sharp(cover.path).toFile(coverPath);
+        }
+        await coverResize(coverPath);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    res.send('success');
+  }
+);

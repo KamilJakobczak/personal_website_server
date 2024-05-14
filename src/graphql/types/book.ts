@@ -29,6 +29,7 @@ interface BookArgs {
     bookGenres: string[];
     pages: number;
     publisher: string;
+
     covers: Covers;
     isbn: string;
     firstEdition: number;
@@ -290,6 +291,7 @@ export const bookResolvers = {
       { input }: BookArgs,
       { prisma, req }: Context
     ): Promise<BookPayloadType> => {
+      console.log(input);
       const userAuth = await authCheck({ req, prisma });
       if (userAuth !== true) {
         return {
@@ -334,13 +336,13 @@ export const bookResolvers = {
           userErrors: [
             {
               message:
-                'Looks like the book you are trying to add already exists in the database',
+                'Looks like the book you are trying to add exists in the database',
             },
           ],
           book: bookExists,
         };
       }
-
+      console.log(language);
       return {
         userErrors: [
           {
