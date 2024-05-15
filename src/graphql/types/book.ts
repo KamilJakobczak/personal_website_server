@@ -22,6 +22,8 @@ interface BooksQueryArgs {
 interface BookArgs {
   input: {
     title: string;
+    titleEnglish?: string;
+    titleOriginal?: string;
     language: Language;
     authors: string[];
     collections: string[];
@@ -39,6 +41,8 @@ interface BookUpdateArgs {
   id: string;
   input: {
     title?: string;
+    titleEnglish?: string;
+    titleOriginal?: string;
     language?: Language;
     authors?: string[];
     translators?: string[];
@@ -71,6 +75,8 @@ export const book = gql`
   type Book implements Node {
     id: ID!
     title: String!
+    titleEnglish: String
+    titleOriginal: String!
     language: Language
     authors: [Author]!
     collections: [Collection]!
@@ -113,6 +119,8 @@ export const book = gql`
   }
   input addBookInput {
     title: String!
+    titleEnglish: String
+    titleOriginal: String!
     language: Language
     authors: [String]!
     collection: [String]
@@ -126,6 +134,8 @@ export const book = gql`
   }
   input updateBookInput {
     title: String
+    titleEnglish: String
+    titleOriginal: String
     language: Language
     authors: [String]
     collection: [String]
@@ -302,6 +312,8 @@ export const bookResolvers = {
 
       const {
         title,
+        titleEnglish,
+        titleOriginal,
         language,
         authors,
         translators,
@@ -315,7 +327,7 @@ export const bookResolvers = {
       } = input;
       // const { original, big, medium, small } = covers;
 
-      // Check whether similar record already exists in the database
+      // Check whether similar record exists in the database already
       const bookExists = await prisma.book.findFirst({
         where: {
           OR: [
@@ -325,6 +337,13 @@ export const bookResolvers = {
                 mode: 'insensitive',
               },
             },
+            {
+              title: {
+                equals: titleEnglish,
+                mode: 'insensitive',
+              },
+            },
+
             {
               isbn: isbn,
             },
@@ -352,6 +371,8 @@ export const bookResolvers = {
         book: prisma.book.create({
           data: {
             title,
+            titleEnglish,
+            titleOriginal,
             language,
             authorIDs: authors,
             genreIDs: bookGenres,
@@ -434,6 +455,8 @@ export const bookResolvers = {
 
       const {
         title,
+        titleEnglish,
+        titleOriginal,
         language,
         authors,
         translators,
@@ -447,6 +470,8 @@ export const bookResolvers = {
 
       let payloadToUpdate = {
         title,
+        titleEnglish,
+        titleOriginal,
         language,
         authorIDs: authors,
         genreIDs: bookGenres,

@@ -115,11 +115,12 @@ imagesRouter.post(
           await sharp(cover.path).toFile(coverPath);
         }
         await coverResize(coverPath);
+        res
+          .status(200)
+          .send('cover directory created along with different sizes');
       } catch (err) {
         console.error(err);
       }
     }
-
-    res.send('success');
   }
 );

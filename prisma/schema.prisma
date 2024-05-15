@@ -103,6 +103,8 @@ model Book {
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   title                String
+  titleEnglish         String?
+  titleOriginal        String?
   language             Language           @default(Polish)
   pages                Int
   covers               Covers?
