@@ -112,8 +112,8 @@ model Book {
   firstEdition         Int
   authorIDs            String[]           @db.ObjectId
   author               Author[]           @relation(fields: [authorIDs], references: [id])
-  collectionIDs        String[]           @db.ObjectId
-  collections          Collection[]       @relation(fields: [collectionIDs], references: [id])
+  bookSeriesIDs        String[]           @db.ObjectId
+  bookSeries           BookSeries[]       @relation(fields: [bookSeriesIDs], references: [id])
   genreIDs             String[]           @db.ObjectId
   genres               Genre[]            @relation("Genres", fields: [genreIDs], references: [id])
   publisherID          String             @db.ObjectId
@@ -126,19 +126,19 @@ model Book {
   customCollections    CustomCollection[] @relation(fields: [customCollectionsIDs], references: [id])
 }
 
-type BookInCollection {
+type BookInBookSeries {
   tome   String
   bookId String @db.ObjectId
 }
 
-model Collection {
+model BookSeries {
   id                String             @id @default(auto()) @map("_id") @db.ObjectId
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   name              String
   booksIDs          String[]           @db.ObjectId
   books             Book[]             @relation(fields: [booksIDs], references: [id])
-  booksInCollection BookInCollection[]
+  booksInBookSeries BookInBookSeries[]
 }
 
 model Genre {

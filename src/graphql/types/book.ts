@@ -1,11 +1,4 @@
-import {
-  Book,
-  Collection,
-  Covers,
-  Language,
-  Prisma,
-  Publisher,
-} from '@prisma/client';
+import { Book, Covers, Language, Prisma, Publisher } from '@prisma/client';
 import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
 import { authCheck } from './resolvers/auth';
@@ -26,7 +19,7 @@ interface BookArgs {
     titleOriginal?: string;
     language: Language;
     authors: string[];
-    collections: string[];
+    bookSeries: string[];
     translators: string[];
     bookGenres: string[];
     pages: number;
@@ -52,7 +45,7 @@ interface BookUpdateArgs {
     covers?: Covers;
     isbn?: string;
     firstEdition?: number;
-    collections: string[];
+    bookSeries?: string[];
   };
 }
 interface BookPayloadType {
@@ -79,7 +72,7 @@ export const book = gql`
     titleOriginal: String!
     language: Language
     authors: [Author]!
-    collections: [Collection]!
+    bookSeries: [BookSeries]
     translators: [Translator]!
     bookGenres: [Genre]!
     pages: Int
@@ -123,7 +116,7 @@ export const book = gql`
     titleOriginal: String!
     language: Language
     authors: [String]!
-    collection: [String]
+    bookSeries: [String]!
     translators: [String]
     bookGenres: [String]!
     pages: Int
@@ -138,7 +131,7 @@ export const book = gql`
     titleOriginal: String
     language: Language
     authors: [String]
-    collection: [String]
+    bookSeries: [String]
     translators: [String]
     bookGenres: [String]
     pages: Int
@@ -158,6 +151,7 @@ export const book = gql`
 export const bookResolvers = {
   Query: {
     book: (_: any, { id }: { id: string }, { prisma }: Context) => {
+      console.log('give me that book');
       return prisma.book.findUnique({
         where: {
           id: id,
@@ -323,7 +317,7 @@ export const bookResolvers = {
         // covers,
         isbn,
         firstEdition,
-        collections,
+        bookSeries,
       } = input;
       // const { original, big, medium, small } = covers;
 
@@ -361,7 +355,6 @@ export const bookResolvers = {
           book: bookExists,
         };
       }
-      console.log(language);
       return {
         userErrors: [
           {
@@ -381,7 +374,7 @@ export const bookResolvers = {
             publisherID: publisher,
             isbn,
             firstEdition,
-            collectionIDs: collections,
+            bookSeriesIDs: bookSeries,
           },
         }),
       };

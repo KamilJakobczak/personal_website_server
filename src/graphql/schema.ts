@@ -4,6 +4,8 @@ import {
   authorResolvers,
   book,
   bookResolvers,
+  bookSeries,
+  bookSeriesResolvers,
   genre,
   genreResolvers,
   publisher,
@@ -21,7 +23,6 @@ import {
 } from './types';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import gql from 'graphql-tag';
-import { collection, collectionResolvers } from './types/collection';
 
 gql;
 
@@ -39,7 +40,7 @@ const schema = makeExecutableSchema({
     Query,
     author,
     book,
-    collection,
+    bookSeries,
     genre,
     publisher,
     profile,
@@ -51,7 +52,7 @@ const schema = makeExecutableSchema({
   resolvers: merge(
     authorResolvers,
     bookResolvers,
-    collectionResolvers,
+    bookSeriesResolvers,
     genreResolvers,
     publisherResolvers,
     profileResolvers,

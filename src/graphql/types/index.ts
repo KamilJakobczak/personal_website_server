@@ -2,6 +2,7 @@ export * from './author';
 export * from './book';
 export * from './genre';
 export * from './publisher';
+export * from './bookSeries';
 export * from './translator';
 export * from './userBookDetails';
 export * from './user';
