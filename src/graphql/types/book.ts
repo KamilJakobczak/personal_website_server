@@ -19,7 +19,7 @@ interface BookArgs {
     titleOriginal: string;
     language: Language;
     authors: string[];
-    bookSeries: string[];
+    bookSeries?: string[];
     translators: string[];
     bookGenres: string[];
     pages: number;
@@ -71,7 +71,7 @@ export const book = gql`
     titleOriginal: String!
     language: Language
     authors: [Author]!
-    bookSeries: [BookSeries]!
+    bookSeries: [BookSeries]
     translators: [Translator]!
     bookGenres: [Genre]!
     pages: Int
