@@ -16,7 +16,7 @@ interface BookArgs {
   input: {
     title: string;
     titleEnglish?: string;
-    titleOriginal?: string;
+    titleOriginal: string;
     language: Language;
     authors: string[];
     bookSeries: string[];
@@ -24,7 +24,6 @@ interface BookArgs {
     bookGenres: string[];
     pages: number;
     publisher: string;
-
     covers: Covers;
     isbn: string;
     firstEdition: number;
@@ -72,7 +71,7 @@ export const book = gql`
     titleOriginal: String!
     language: Language
     authors: [Author]!
-    bookSeries: [BookSeries]
+    bookSeries: [BookSeries]!
     translators: [Translator]!
     bookGenres: [Genre]!
     pages: Int
@@ -111,19 +110,19 @@ export const book = gql`
     publishers: [String]!
   }
   input addBookInput {
+    authors: [String]!
+    bookGenres: [String]!
+    bookSeries: [String]!
+    covers: coversInput
+    firstEdition: Int
+    isbn: String
+    language: Language
+    pages: Int
+    publisher: String
     title: String!
     titleEnglish: String
     titleOriginal: String!
-    language: Language
-    authors: [String]!
-    bookSeries: [String]!
-    translators: [String]
-    bookGenres: [String]!
-    pages: Int
-    publisher: String
-    covers: coversInput
-    isbn: String
-    firstEdition: Int
+    translators: [String]    
   }
   input updateBookInput {
     title: String
@@ -295,7 +294,6 @@ export const bookResolvers = {
       { input }: BookArgs,
       { prisma, req }: Context
     ): Promise<BookPayloadType> => {
-      console.log(input);
       const userAuth = await authCheck({ req, prisma });
       if (userAuth !== true) {
         return {
@@ -303,21 +301,21 @@ export const bookResolvers = {
           book: null,
         };
       }
-
+      console.log(input);
       const {
+        authors,
+        bookGenres,
+        bookSeries,
+        firstEdition,
+        isbn,
+        language,
+        pages,
+        publisher,
         title,
         titleEnglish,
         titleOriginal,
-        language,
-        authors,
         translators,
-        bookGenres,
-        pages,
-        publisher,
         // covers,
-        isbn,
-        firstEdition,
-        bookSeries,
       } = input;
       // const { original, big, medium, small } = covers;
 
@@ -337,7 +335,12 @@ export const bookResolvers = {
                 mode: 'insensitive',
               },
             },
-
+            {
+              title: {
+                equals: titleOriginal,
+                mode: 'insensitive',
+              },
+            },
             {
               isbn: isbn,
             },
