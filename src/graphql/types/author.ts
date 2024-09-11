@@ -19,8 +19,8 @@ interface AuthorArgs {
   };
 }
 interface AuthorUpdateArgs {
-  id: string;
   input: {
+    id: string;
     firstName?: string;
     secondName?: string;
     thirdName?: string;
@@ -52,7 +52,7 @@ export const author = gql`
   type Mutation {
     addAuthor(input: addAuthorInput!): AuthorPayload!
     deleteAuthor(id: ID!): AuthorPayload!
-    updateAuthor(id: ID!, input: updateAuthorInput!): AuthorPayload!
+    updateAuthor( input: updateAuthorInput!): AuthorPayload!
   }
   type Author implements Node {
     id: ID!
@@ -95,6 +95,7 @@ export const author = gql`
     bioPages: bioPagesInput
   }
   input updateAuthorInput {
+    id: ID!
     firstName: String
     secondName: String
     thirdName: String
@@ -239,7 +240,7 @@ export const authorResolvers = {
     },
     updateAuthor: async (
       _: any,
-      { id, input }: AuthorUpdateArgs,
+      { input }: AuthorUpdateArgs,
       { prisma, req }: Context
     ): Promise<AuthorPayloadType> => {
       const authCheckVar = await authCheck({ req, prisma });
@@ -249,6 +250,19 @@ export const authorResolvers = {
           author: null,
         };
       }
+
+      const {
+        id,
+        firstName,
+        secondName,
+        thirdName,
+        lastName,
+        nationality,
+        birthYear,
+        deathYear,
+        bioPages,
+      } = input;
+
       const author = await prisma.author.findUnique({
         where: {
           id,
@@ -264,16 +278,6 @@ export const authorResolvers = {
           author: null,
         };
       }
-      const {
-        firstName,
-        secondName,
-        thirdName,
-        lastName,
-        nationality,
-        birthYear,
-        deathYear,
-        bioPages,
-      } = input;
 
       let payloadToUpdate = {
         firstName,
@@ -289,27 +293,11 @@ export const authorResolvers = {
       if (!firstName) {
         delete payloadToUpdate.firstName;
       }
-      if (!secondName) {
-        delete payloadToUpdate.secondName;
-      }
-      if (!thirdName) {
-        delete payloadToUpdate.thirdName;
-      }
+
       if (!lastName) {
         delete payloadToUpdate.lastName;
       }
-      if (!nationality) {
-        delete payloadToUpdate.nationality;
-      }
-      if (!birthYear) {
-        delete payloadToUpdate.birthYear;
-      }
-      if (!deathYear) {
-        delete payloadToUpdate.deathYear;
-      }
-      if (!bioPages) {
-        delete payloadToUpdate.bioPages;
-      }
+
       return {
         userErrors: [
           {

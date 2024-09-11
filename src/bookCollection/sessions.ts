@@ -5,7 +5,7 @@ import MongoStore from 'connect-mongo';
 const mongoStore = MongoStore.create({
   mongoUrl:
     'mongodb+srv://jamardracken:ZdZtNR9jwoqbhRyO@cluster0.0d3ymvv.mongodb.net/sessions?retryWrites=true&w=majority',
-  // 'mongodb://localhost:27017/sessions?retryWrites=true&w=majority'
+  // 'mongodb://localhost:27017/sessions?retryWrites=true&w=majority',
   collectionName: 'sessions',
   autoRemove: 'interval',
   autoRemoveInterval: 10,

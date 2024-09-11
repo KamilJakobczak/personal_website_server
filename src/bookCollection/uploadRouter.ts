@@ -7,7 +7,7 @@ export const uploadRouter = express.Router();
 uploadRouter.use((req, res, next) => {
   {
     console.log('Time: ', Date.now());
-
+    res.header('Access-Control-Allow-Origin', 'https://localhost:3000');
     next();
   }
 });
