@@ -25,8 +25,8 @@ interface PublisherArgs {
   };
 }
 interface PublisherUpdateArgs {
-  id: string;
   input: {
+    id: string;
     name?: string;
     address?: {
       country?: string;
@@ -48,19 +48,18 @@ export const publisher = gql`
   type Mutation {
     addPublisher(input: addPublisherInput): PublisherPayload!
     deletePublisher(id: ID!): PublisherPayload!
-    updatePublisher(id: ID!, input: updatePublisherInput!): PublisherPayload!
+    updatePublisher(input: updatePublisherInput!): PublisherPayload!
   }
-  type PublisherPayload {
-    userErrors: [userError!]!
-    publisher: Publisher
-  }
-
   type Publisher implements Node {
     id: ID!
     name: String
     address: Address
     website: String
     books: [Book]!
+  }
+  type PublisherPayload {
+    userErrors: [userError!]!
+    publisher: Publisher
   }
   type Address {
     country: String
@@ -84,6 +83,7 @@ export const publisher = gql`
     website: String
   }
   input updatePublisherInput {
+    id: ID!
     name: String
     address: addressInput
     website: String
@@ -209,9 +209,10 @@ export const publisherResolvers = {
     },
     updatePublisher: async (
       _: any,
-      { id, input }: PublisherUpdateArgs,
+      { input }: PublisherUpdateArgs,
       { req, prisma }: Context
     ) => {
+      const { id } = input;
       const userAuth = await authCheck({ req, prisma });
       if (userAuth !== true) {
         return {
@@ -241,39 +242,22 @@ export const publisherResolvers = {
       let publisherPayloadToUpdate = {
         name,
         website,
+        address,
       };
-      let addressPayloadToUpdate = {
-        country,
-        zipCode,
-        city,
-        street,
-        buildingNr,
-        placeNr,
-      };
+      // let addressPayloadToUpdate = {
+      //   country,
+      //   zipCode,
+      //   city,
+      //   street,
+      //   buildingNr,
+      //   placeNr,
+      // };
 
-      if (!name || name.toLowerCase() === publisherExists.name) {
+      if (!name) {
         delete publisherPayloadToUpdate.name;
       }
-      if (!website || website.toLowerCase() === publisherExists.website) {
+      if (!website) {
         delete publisherPayloadToUpdate.website;
-      }
-      if (!country) {
-        delete addressPayloadToUpdate.country;
-      }
-      if (!zipCode) {
-        delete addressPayloadToUpdate.zipCode;
-      }
-      if (!city) {
-        delete addressPayloadToUpdate.city;
-      }
-      if (!street) {
-        delete addressPayloadToUpdate.street;
-      }
-      if (!buildingNr) {
-        delete addressPayloadToUpdate.buildingNr;
-      }
-      if (!placeNr) {
-        delete addressPayloadToUpdate.placeNr;
       }
 
       return {
@@ -282,13 +266,6 @@ export const publisherResolvers = {
           where: { id },
           data: {
             ...publisherPayloadToUpdate,
-            address: !address
-              ? undefined
-              : {
-                  update: {
-                    ...addressPayloadToUpdate,
-                  },
-                },
           },
         }),
       };

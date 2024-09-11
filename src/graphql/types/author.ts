@@ -52,7 +52,7 @@ export const author = gql`
   type Mutation {
     addAuthor(input: addAuthorInput!): AuthorPayload!
     deleteAuthor(id: ID!): AuthorPayload!
-    updateAuthor( input: updateAuthorInput!): AuthorPayload!
+    updateAuthor(input: updateAuthorInput!): AuthorPayload!
   }
   type Author implements Node {
     id: ID!
