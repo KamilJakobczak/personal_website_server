@@ -16,14 +16,15 @@ export interface epubParserData {
       | null;
   } | null;
   genres: { existing: string[] | null; new: string[] | null } | null;
-  // publisher: {
-  //   existing: { id: string; name: string } | null;
-  //   new: string | null;
-  // } | null;
+  publisher: {
+    existing: { id: string; name: string } | null;
+    new: string | null;
+  } | null;
   title: string | null;
   language: string | null;
   cover?: string;
   description: string | null;
+  isbn: string | null;
 }
 
 export const epubParser = async (filepath: string, fileName: string) => {
@@ -37,23 +38,26 @@ export const epubParser = async (filepath: string, fileName: string) => {
       const localId = fileName;
 
       const data = epub.metadata;
+      console.log(data);
       const cover = undefined;
       // const cover = epub.cover;
       const authors = data.creator;
       const description = data.description;
+      const isbn = data.ISBN;
       const genres = data.subject;
       const title = data.title;
-      // const publisher = data.publisher;
+      const publisher = data.publisher;
       const language = data.language;
-
+      console.log(isbn);
       let parsedData = {
         localId,
         title: title ? title : null,
         description: description ? description : null,
+        isbn: isbn ? isbn : null,
         authors: await findAuthors(authors),
         genres: await findGenres(genres),
         language: await checkLanguage(language),
-        // publisher: await findPublisher(publisher),
+        publisher: await findPublisher(publisher),
       };
 
       if (cover === undefined) {
@@ -214,7 +218,6 @@ async function findAuthors(authors: string) {
       authorsIDs.push(author.id);
     }
     if (!author) {
-      console.log(nameArr);
       const newAuthor = {
         firstName: nameArr[0],
         secondName: nameArr.length > 2 ? nameArr[1] : '',

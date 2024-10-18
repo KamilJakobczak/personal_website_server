@@ -30,8 +30,8 @@ interface BookArgs {
   };
 }
 interface BookUpdateArgs {
-  id: string;
   input: {
+    id: string;
     title?: string;
     titleEnglish?: string;
     titleOriginal?: string;
@@ -62,7 +62,7 @@ export const book = gql`
   type Mutation {
     addBook(input: addBookInput!): BookPayload!
     deleteBook(id: ID!): BookPayload!
-    updateBook(id: ID!, input: updateBookInput!): BookPayload!
+    updateBook(input: updateBookInput!): BookPayload!
   }
   type Book implements Node {
     id: ID!
@@ -125,6 +125,7 @@ export const book = gql`
     translators: [String]    
   }
   input updateBookInput {
+    id: ID!
     title: String
     titleEnglish: String
     titleOriginal: String
@@ -150,7 +151,6 @@ export const book = gql`
 export const bookResolvers = {
   Query: {
     book: (_: any, { id }: { id: string }, { prisma }: Context) => {
-      console.log('give me that book');
       return prisma.book.findUnique({
         where: {
           id: id,
@@ -301,7 +301,7 @@ export const bookResolvers = {
           book: null,
         };
       }
-      console.log(input);
+
       const {
         authors,
         bookGenres,
@@ -424,10 +424,11 @@ export const bookResolvers = {
     },
     updateBook: async (
       _: any,
-      { id, input }: BookUpdateArgs,
+      { input }: BookUpdateArgs,
       { prisma, req }: Context
     ): Promise<BookPayloadType> => {
       const userAuth = await authCheck({ req, prisma });
+      const { id } = input;
       const bookExists = await prisma.book.findUnique({
         where: {
           id,
@@ -477,32 +478,8 @@ export const bookResolvers = {
         isbn,
         firstEdition,
       };
-      if (!title || title === bookExists.title) {
+      if (!title) {
         delete payloadToUpdate.title;
-      }
-      if (!language || language === bookExists.language) {
-        delete payloadToUpdate.language;
-      }
-      if (!authors || authors === bookExists.authorIDs) {
-        delete payloadToUpdate.authorIDs;
-      }
-      if (!bookGenres || bookGenres === bookExists.genreIDs) {
-        delete payloadToUpdate.genreIDs;
-      }
-      if (!translators || translators === bookExists.translatorIDs) {
-        delete payloadToUpdate.translatorIDs;
-      }
-      if (!pages || pages === bookExists.pages) {
-        delete payloadToUpdate.pages;
-      }
-      if (!publisher || publisher === bookExists.publisherID) {
-        delete payloadToUpdate.publisherID;
-      }
-      if (!isbn || isbn === bookExists.isbn) {
-        delete payloadToUpdate.isbn;
-      }
-      if (!firstEdition || firstEdition === bookExists.firstEdition) {
-        delete payloadToUpdate.firstEdition;
       }
 
       return {
