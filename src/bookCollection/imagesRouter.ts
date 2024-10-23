@@ -12,6 +12,7 @@ imagesRouter.use((req, res, next) => {
   {
     console.log('Time: ', Date.now());
     res.header('Access-Control-Allow-Origin', 'https://localhost:3000');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
     next();
   }
 });
@@ -127,12 +128,14 @@ imagesRouter.post(
 );
 
 imagesRouter.post('/uploaded/covers-epub', async (req, res) => {
+  console.log(req.body);
   const { bookId, localId } = req.body;
 
   const coversPath = path.join(imagesDir, 'covers');
 
   const tempDir = path.join(__dirname, '..', '..', 'files', 'images', 'temp');
-  const filePath = path.join(tempDir, 'covers', localId);
+  const filePath = path.join(tempDir, 'covers', localId + '.jpg');
+  console.log(tempDir, filePath);
   const fileExists = fs.existsSync(filePath);
   const coverDir = path.join(coversPath, bookId);
 
