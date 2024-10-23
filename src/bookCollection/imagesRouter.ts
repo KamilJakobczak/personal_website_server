@@ -87,6 +87,7 @@ imagesRouter.get('/uploaded/covers/:id', async (req, res) => {
     res.sendFile(filePath);
   }
 });
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, path.join(imagesDir, 'temp', 'covers'));
@@ -124,3 +125,34 @@ imagesRouter.post(
     }
   }
 );
+
+imagesRouter.post('/uploaded/covers-epub', async (req, res) => {
+  const { bookId, localId } = req.body;
+
+  const coversPath = path.join(imagesDir, 'covers');
+
+  const tempDir = path.join(__dirname, '..', '..', 'files', 'images', 'temp');
+  const filePath = path.join(tempDir, 'covers', localId);
+  const fileExists = fs.existsSync(filePath);
+  const coverDir = path.join(coversPath, bookId);
+
+  if (!fileExists) {
+    console.error("Temp cover file doesn't exist");
+  } else {
+    const coverPath = path.join(coversPath, bookId, 'original.jpg');
+    try {
+      if (!fs.existsSync(coverDir)) {
+        fs.mkdirSync(coverDir);
+      }
+      if (!fs.existsSync(coverPath)) {
+        await sharp(filePath).toFile(coverPath);
+      }
+      await coverResize(coverPath);
+      res
+        .status(200)
+        .send('cover directory created along with different sizes');
+    } catch (err) {
+      console.error(err);
+    }
+  }
+});

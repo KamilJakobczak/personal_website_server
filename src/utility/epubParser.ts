@@ -25,6 +25,7 @@ export interface epubParserData {
   cover?: string;
   description: string | null;
   isbn: string | null;
+  bookExists: boolean;
 }
 
 export const epubParser = async (filepath: string, fileName: string) => {
@@ -39,16 +40,26 @@ export const epubParser = async (filepath: string, fileName: string) => {
 
       const data = epub.metadata;
       console.log(data);
-      const cover = undefined;
-      // const cover = epub.cover;
+      const isbn = data.ISBN;
+      const bookExists = await prisma.book.findFirst({
+        where: {
+          isbn: isbn,
+        },
+      });
+      // if (bookExists) {
+      //   return 'book is already in the database';
+      // }
+      const cover = data.cover;
+
       const authors = data.creator;
       const description = data.description;
-      const isbn = data.ISBN;
+
       const genres = data.subject;
       const title = data.title;
       const publisher = data.publisher;
       const language = data.language;
       console.log(isbn);
+
       let parsedData = {
         localId,
         title: title ? title : null,
@@ -58,6 +69,7 @@ export const epubParser = async (filepath: string, fileName: string) => {
         genres: await findGenres(genres),
         language: await checkLanguage(language),
         publisher: await findPublisher(publisher),
+        bookExists: bookExists ? true : false,
       };
 
       if (cover === undefined) {

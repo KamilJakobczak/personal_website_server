@@ -35,7 +35,6 @@ export async function handleUpload(req: any, res: any) {
     });
   });
 }
-//helpers
 
 const isFileValid = (file: any) => {
   const type = file.originalFilename.endsWith('.epub');
