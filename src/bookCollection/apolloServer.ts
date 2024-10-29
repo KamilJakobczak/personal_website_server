@@ -1,7 +1,6 @@
 import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
 import { ApolloServer } from 'apollo-server-express';
 import { Express } from 'express';
-
 import { Server } from 'http';
 import { prisma, Context } from './prismaClient';
 import schema from '../graphql/schema';

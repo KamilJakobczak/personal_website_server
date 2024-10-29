@@ -1,4 +1,3 @@
-import { ApolloError } from 'apollo-server';
 import fs from 'fs';
 
 const isNodeError = (error: Error): error is NodeJS.ErrnoException =>

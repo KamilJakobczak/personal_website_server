@@ -4,6 +4,9 @@ node_modules
 sessions
 keys.ts
 files
+.env.development
+.env.production
+Dockerfile
 
 key.pem
 cert.pem

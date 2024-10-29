@@ -53,6 +53,12 @@ interface BookPayloadType {
   }[];
   book: Book | Prisma.Prisma__BookClient<Book> | null;
 }
+interface DeletePayloadType {
+  userErrors: {
+    message: string;
+  }[];
+  success: boolean;
+}
 
 export const book = gql`
   extend type Query {
@@ -61,7 +67,7 @@ export const book = gql`
   }
   type Mutation {
     addBook(input: addBookInput!): BookPayload!
-    deleteBook(id: ID!): BookPayload!
+    deleteBook(id: ID!): DeletePayload!
     updateBook(input: updateBookInput!): BookPayload!
   }
   type Book implements Node {
@@ -91,6 +97,10 @@ export const book = gql`
   type BookPayload {
     userErrors: [userError!]!
     book: Book
+  }
+  type DeletePayload {
+    userErrors: [userError!]!
+    success: Boolean!
   }
   type userError {
     message: String!
@@ -386,41 +396,49 @@ export const bookResolvers = {
       _: any,
       { id }: { id: string },
       { prisma, req }: Context
-    ): Promise<BookPayloadType> => {
+    ): Promise<DeletePayloadType> => {
       const userAuth = await authCheck({ req, prisma });
       const bookExists = await prisma.book.findUnique({
         where: {
           id,
         },
       });
-      if (!bookExists) {
-        return {
-          ...{
-            userErrors: [{ message: 'Book does not exist in the database' }],
-          },
-          book: null,
-        };
-      }
 
-      if (userAuth !== true) {
-        return {
-          ...userAuth,
-          book: null,
-        };
-      }
+      try {
+        if (!bookExists) {
+          return {
+            ...{
+              userErrors: [{ message: 'Book does not exist in the database' }],
+            },
+            success: false,
+          };
+        }
 
-      return {
-        userErrors: [
-          {
-            message: '',
-          },
-        ],
-        book: prisma.book.delete({
+        if (userAuth !== true) {
+          return {
+            ...userAuth,
+            success: false,
+          };
+        }
+        await prisma.book.delete({
           where: {
             id,
           },
-        }),
-      };
+        });
+        return {
+          userErrors: [
+            {
+              message: '',
+            },
+          ],
+          success: true,
+        };
+      } catch (error) {
+        return {
+          userErrors: [{ message: `${error}` }],
+          success: false,
+        };
+      }
     },
     updateBook: async (
       _: any,
@@ -429,6 +447,7 @@ export const bookResolvers = {
     ): Promise<BookPayloadType> => {
       const userAuth = await authCheck({ req, prisma });
       const { id } = input;
+
       const bookExists = await prisma.book.findUnique({
         where: {
           id,
@@ -460,7 +479,6 @@ export const bookResolvers = {
         bookGenres,
         pages,
         publisher,
-        // covers,
         isbn,
         firstEdition,
       } = input;
@@ -481,7 +499,7 @@ export const bookResolvers = {
       if (!title) {
         delete payloadToUpdate.title;
       }
-
+      console.log(payloadToUpdate);
       return {
         userErrors: [{ message: '' }],
         book: prisma.book.update({
