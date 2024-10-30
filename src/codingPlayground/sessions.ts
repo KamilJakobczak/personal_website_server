@@ -1,10 +1,10 @@
 import session from 'express-session';
 import MongoStore from 'connect-mongo';
 import { v4 as uuidv4 } from 'uuid';
+import config from '../../config';
 
 const mongoStore = MongoStore.create({
-  mongoUrl:
-    'mongodb+srv://jamardracken:ZdZtNR9jwoqbhRyO@cluster0.0d3ymvv.mongodb.net/sessions?retryWrites=true&w=majority',
+  mongoUrl: config.sessions,
   collectionName: 'coding_sessions',
   autoRemove: 'interval',
   autoRemoveInterval: 10,
