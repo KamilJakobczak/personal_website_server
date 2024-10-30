@@ -14,7 +14,7 @@ const mongoStore = MongoStore.create({
 
 export const bookSessions = session({
   store: mongoStore,
-  secret: config.secret ? config.secret : '6D51C938172BBA8E3A5D98ECAC487',
+  secret: config.secret,
   resave: true,
   saveUninitialized: true,
   genid: function (req) {

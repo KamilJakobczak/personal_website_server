@@ -15,12 +15,6 @@ import { uploadRouter } from './bookCollection/uploadRouter';
 
 export const app = express();
 
-// Logger middleware
-app.use((req, res, next) => {
-  console.log('Time: ', Date.now());
-  next();
-});
-
 // Compression middleware
 app.use(compression());
 // JSON parsing middleware

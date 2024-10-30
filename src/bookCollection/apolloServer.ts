@@ -4,9 +4,11 @@ import { Express } from 'express';
 import { Server } from 'http';
 import { prisma, Context } from './prismaClient';
 import schema from '../graphql/schema';
+import config from '../../config';
 
-const port: string = process.env.PORT || '4000';
-
+const port: string = config.port || '3333';
+const host: string = config.host || '0.0.0.0';
+console.log(port, host);
 export const startApolloServer = async (app: Express, httpServer: Server) => {
   const server = new ApolloServer({
     schema,
@@ -15,15 +17,16 @@ export const startApolloServer = async (app: Express, httpServer: Server) => {
     },
     csrfPrevention: true,
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+    introspection: process.env.NODE_ENV !== 'production',
   });
 
   await server.start();
 
   server.applyMiddleware({
     app,
-    path: '/api/graphql',
+    path: config.graphqlAPI,
   });
 
-  httpServer.listen({ port });
+  httpServer.listen({ port, host });
   console.log(`Apollo server ready at http://localhost:${port}`);
 };
