@@ -1,49 +1,38 @@
-import * as express from 'express';
-
+// Core Modules
+import express, { Request, Response } from 'express';
+// Initialize Router
 export const collectionRouter = express.Router();
 
+// Middleware for All Routes
 collectionRouter.all('/', async (req, res, next) => {
+  console.log('Time: ', Date.now());
   {
-    console.log('Time: ', Date.now());
     const session = req.session;
     if (session) {
       console.log(session);
     }
-
     console.log('Session ID from collection router: ', req.sessionID);
-
     next();
   }
 });
 
-collectionRouter.post('/add/book', async (req, res) => {
-  console.log(req.body);
-  res.send('new book');
+// Adding new records
+collectionRouter.post('/add/:item', async (req, res) => {
+  const { item } = req.params;
+  try {
+    res.send(`New ${item}`);
+  } catch (error) {
+    console.error(`Error adding new ${item}`, error);
+    res.status(500).send('Internal Server Error');
+  }
 });
-
-collectionRouter.post('/add/author', async (req, res) => {
-  console.log(req.body);
-  res.send('new author');
-});
-collectionRouter.post('/add/genre', async (req, res) => {
-  console.log(req.body);
-  res.send('new genre');
-});
-collectionRouter.post('/add/translator', async (req, res) => {
-  console.log(req.body);
-  res.send('new translator');
-});
-collectionRouter.post('/add/publisher', async (req, res) => {
-  console.log(req.body);
-  res.send('new publisher');
-});
-collectionRouter.post('/add/collection', async (req, res) => {
-  console.log(req.body);
-  res.send('new collection');
-});
-
-collectionRouter.get('/logout', (req, res) => {
-  req.session.destroy(err => {
+// Logging out
+collectionRouter.get('/logout', async (req, res) => {
+  req.session.destroy(error => {
+    if (error) {
+      console.error('Error during logout:', error);
+      return res.status(500).send('Internal Server Error');
+    }
     res.redirect('/');
   });
 });
