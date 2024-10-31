@@ -21,7 +21,8 @@ interface ConfigInterface {
   apolloSchemaReport: string | undefined;
   graphqlAPI: string | undefined;
   host: string | undefined;
-  port: string | undefined;
+  backPort: string | undefined;
+  frontPort: string | undefined;
 }
 const config: ConfigInterface = {
   database: process.env.DATABASE_URL,
@@ -32,7 +33,8 @@ const config: ConfigInterface = {
   apolloSchemaReport: process.env.APOLLO_SCHEMA_REPORTING,
   graphqlAPI: process.env.GRAPHQL_PATH,
   host: process.env.HOST,
-  port: process.env.PORT,
+  backPort: process.env.BACK_PORT,
+  frontPort: process.env.FRONT_PORT,
 };
 
 export default config;

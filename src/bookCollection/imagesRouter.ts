@@ -4,6 +4,7 @@ import { coverResize } from '../utility/coverResize';
 import fs from 'fs';
 import sharp from 'sharp';
 import multer from 'multer';
+import config from '../../config';
 
 export const imagesRouter = express.Router();
 const imagesDir = path.join(__dirname, '..', '..', 'files', 'images');
@@ -11,7 +12,10 @@ const imagesDir = path.join(__dirname, '..', '..', 'files', 'images');
 imagesRouter.use((req, res, next) => {
   {
     console.log('Time: ', Date.now());
-    res.header('Access-Control-Allow-Origin', 'https://localhost:3000');
+    res.header(
+      'Access-Control-Allow-Origin',
+      `https://${config.host}:${config.frontPort}`
+    );
     res.header('Access-Control-Allow-Headers', 'Content-Type');
     next();
   }

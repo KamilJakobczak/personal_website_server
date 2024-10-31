@@ -9,11 +9,11 @@ const mongoStore = MongoStore.create({
   autoRemove: 'interval',
   autoRemoveInterval: 10,
   touchAfter: 24 * 3600,
-  crypto: { secret: 'asdghjfjhf' }, //SET A SERIOUS ONE
+  crypto: { secret: config.secret },
 });
 export const codingSessions = session({
   store: mongoStore,
-  secret: process.env.SECRET ? process.env.SECRET : 'dummy_secret', //SET A SERIOUS ONE
+  secret: config.secret,
   saveUninitialized: false,
   resave: true,
   genid: function (req) {

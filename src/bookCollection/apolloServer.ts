@@ -1,32 +1,36 @@
+// Apollo and Express
 import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
 import { ApolloServer } from 'apollo-server-express';
 import { Express } from 'express';
 import { Server } from 'http';
+// App Modules
 import { prisma, Context } from './prismaClient';
 import schema from '../graphql/schema';
+// Configuration
 import config from '../../config';
 
-const port: string = config.port || '3333';
-const host: string = config.host || '0.0.0.0';
-console.log(port, host);
 export const startApolloServer = async (app: Express, httpServer: Server) => {
-  const server = new ApolloServer({
-    schema,
-    context: async ({ req, res }: any): Promise<Context> => {
-      return { prisma, req, res };
-    },
-    csrfPrevention: true,
-    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
-    introspection: process.env.NODE_ENV !== 'production',
-  });
+  try {
+    const server = new ApolloServer({
+      schema,
+      context: async ({ req, res }: any): Promise<Context> => {
+        return { prisma, req, res };
+      },
+      csrfPrevention: true,
+      plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+      introspection: process.env.NODE_ENV !== 'production',
+    });
 
-  await server.start();
+    await server.start();
 
-  server.applyMiddleware({
-    app,
-    path: config.graphqlAPI,
-  });
-
-  httpServer.listen({ port, host });
-  console.log(`Apollo server ready at http://localhost:${port}`);
+    server.applyMiddleware({
+      app,
+      path: config.graphqlAPI,
+    });
+    console.log(
+      `Apollo server ready at http://${config.host}:${config.backPort}${server.graphqlPath}`
+    );
+  } catch (error) {
+    console.error('Apollo Server Initialization Error:', error);
+  }
 };

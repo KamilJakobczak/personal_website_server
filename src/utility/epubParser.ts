@@ -46,9 +46,9 @@ export const epubParser = async (filepath: string, fileName: string) => {
           isbn: isbn,
         },
       });
-      // if (bookExists) {
-      //   return 'book is already in the database';
-      // }
+      if (bookExists) {
+        return 'book is already in the database';
+      }
       const cover = data.cover;
 
       const authors = data.creator;
