@@ -29,7 +29,7 @@ imagesRouter.get('/covers/:bookId/:size', async (req, res) => {
   const coversPath = path.join(imagesDir, 'covers');
   const bookDir = path.join(coversPath, bookId);
   const bookDirExists = fs.existsSync(bookDir);
-
+  console.log(bookDir);
   if (!bookDirExists) {
     return res.status(404).send('No cover found');
   }
@@ -171,6 +171,7 @@ imagesRouter.post('/uploaded/covers-epub', async (req, res) => {
     await coverResize(coverPath);
     // Delete the temporary file
     fs.unlinkSync(filePath);
+
     res.status(200).send('cover directory created along with different sizes');
   } catch (error) {
     console.error('Error processing cover', error);
