@@ -91,13 +91,13 @@ export const genreResolvers = {
       { input }: GenreArgs,
       { req, prisma }: Context
     ): Promise<GenrePayloadType> => {
-      const userAuth = await authCheck({ req, prisma });
-      if (userAuth !== true) {
-        return {
-          ...userAuth,
-          ...{ genre: null },
-        };
-      }
+      // const userAuth = await authCheck({ req, prisma });
+      // if (userAuth !== true) {
+      //   return {
+      //     ...userAuth,
+      //     ...{ genre: null },
+      //   };
+      // }
       const { name } = input;
       const doesExist = await prisma.genre.findFirst({
         where: {
@@ -130,13 +130,13 @@ export const genreResolvers = {
     ): Promise<GenrePayloadType> => {
       const { name } = input;
 
-      const userAuth = await authCheck({ req, prisma });
-      if (userAuth !== true) {
-        return {
-          ...userAuth,
-          genre: null,
-        };
-      }
+      // const userAuth = await authCheck({ req, prisma });
+      // if (userAuth !== true) {
+      //   return {
+      //     ...userAuth,
+      //     genre: null,
+      //   };
+      // }
 
       const genreExists = prisma.genre.findUnique({
         where: {
@@ -175,13 +175,13 @@ export const genreResolvers = {
       { prisma, req }: Context
     ): Promise<GenrePayloadType> => {
       const genreNull = { genre: null };
-      const userAuth = await authCheck({ req, prisma });
-      if (userAuth !== true) {
-        return {
-          ...userAuth,
-          ...genreNull,
-        };
-      }
+      // const userAuth = await authCheck({ req, prisma });
+      // if (userAuth !== true) {
+      //   return {
+      //     ...userAuth,
+      //     ...genreNull,
+      //   };
+      // }
       const genreExists = prisma.genre.findUnique({
         where: {
           id,

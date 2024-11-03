@@ -1,5 +1,5 @@
 // Core Modules
-import express, { Request, Response } from 'express';
+import express from 'express';
 // Initialize Router
 export const collectionRouter = express.Router();
 

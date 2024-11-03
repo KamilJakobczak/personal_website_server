@@ -144,14 +144,14 @@ export const authorResolvers = {
       { input }: AuthorArgs,
       { prisma, req }: Context
     ): Promise<AuthorPayloadType> => {
-      const authCheckVar = await authCheck({ req, prisma });
+      // const authCheckVar = await authCheck({ req, prisma });
 
-      if (authCheckVar !== true) {
-        return {
-          ...authCheckVar,
-          ...{ author: null },
-        };
-      }
+      // if (authCheckVar !== true) {
+      //   return {
+      //     ...authCheckVar,
+      //     ...{ author: null },
+      //   };
+      // }
 
       const {
         firstName,
@@ -217,14 +217,14 @@ export const authorResolvers = {
     ): Promise<AuthorPayloadType> => {
       const authorNull = { author: null };
 
-      const authCheckVar = await authCheck({ req, prisma });
+      // const authCheckVar = await authCheck({ req, prisma });
 
-      if (authCheckVar !== true) {
-        return {
-          ...authCheckVar,
-          ...authorNull,
-        };
-      }
+      // if (authCheckVar !== true) {
+      //   return {
+      //     ...authCheckVar,
+      //     ...authorNull,
+      //   };
+      // }
       return {
         userErrors: [
           {
@@ -243,13 +243,13 @@ export const authorResolvers = {
       { input }: AuthorUpdateArgs,
       { prisma, req }: Context
     ): Promise<AuthorPayloadType> => {
-      const authCheckVar = await authCheck({ req, prisma });
-      if (authCheckVar !== true) {
-        return {
-          ...authCheckVar,
-          author: null,
-        };
-      }
+      // const authCheckVar = await authCheck({ req, prisma });
+      // if (authCheckVar !== true) {
+      //   return {
+      //     ...authCheckVar,
+      //     author: null,
+      //   };
+      // }
 
       const {
         id,

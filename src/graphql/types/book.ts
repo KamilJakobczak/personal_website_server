@@ -204,11 +204,20 @@ export const bookResolvers = {
           return books;
         }
       } else {
-        return prisma.book.findMany({
+        const books = await prisma.book.findMany({
+          where: {
+            title: {
+              mode: 'insensitive',
+            },
+          },
           orderBy: {
             title: 'asc',
           },
         });
+        const sortedBooks = books.sort((a, b) =>
+          a.title.toLowerCase().localeCompare(b.title.toLowerCase())
+        );
+        return sortedBooks;
       }
     },
   },
@@ -304,13 +313,13 @@ export const bookResolvers = {
       { input }: BookArgs,
       { prisma, req }: Context
     ): Promise<BookPayloadType> => {
-      const userAuth = await authCheck({ req, prisma });
-      if (userAuth !== true) {
-        return {
-          ...userAuth,
-          book: null,
-        };
-      }
+      // const userAuth = await authCheck({ req, prisma });
+      // if (userAuth !== true) {
+      //   return {
+      //     ...userAuth,
+      //     book: null,
+      //   };
+      // }
 
       const {
         authors,
@@ -397,7 +406,7 @@ export const bookResolvers = {
       { id }: { id: string },
       { prisma, req }: Context
     ): Promise<DeletePayloadType> => {
-      const userAuth = await authCheck({ req, prisma });
+      // const userAuth = await authCheck({ req, prisma });
       const bookExists = await prisma.book.findUnique({
         where: {
           id,
@@ -414,12 +423,12 @@ export const bookResolvers = {
           };
         }
 
-        if (userAuth !== true) {
-          return {
-            ...userAuth,
-            success: false,
-          };
-        }
+        // if (userAuth !== true) {
+        //   return {
+        //     ...userAuth,
+        //     success: false,
+        //   };
+        // }
         await prisma.book.delete({
           where: {
             id,
@@ -445,7 +454,7 @@ export const bookResolvers = {
       { input }: BookUpdateArgs,
       { prisma, req }: Context
     ): Promise<BookPayloadType> => {
-      const userAuth = await authCheck({ req, prisma });
+      // const userAuth = await authCheck({ req, prisma });
       const { id } = input;
 
       const bookExists = await prisma.book.findUnique({
@@ -462,12 +471,12 @@ export const bookResolvers = {
         };
       }
 
-      if (userAuth !== true) {
-        return {
-          ...userAuth,
-          book: null,
-        };
-      }
+      // if (userAuth !== true) {
+      //   return {
+      //     ...userAuth,
+      //     book: null,
+      //   };
+      // }
 
       const {
         title,

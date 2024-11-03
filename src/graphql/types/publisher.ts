@@ -122,13 +122,13 @@ export const publisherResolvers = {
       { input }: PublisherArgs,
       { req, prisma }: Context
     ): Promise<PublisherPayloadType> => {
-      const userAuth = await authCheck({ req, prisma });
-      if (userAuth !== true) {
-        return {
-          ...userAuth,
-          publisher: null,
-        };
-      }
+      // const userAuth = await authCheck({ req, prisma });
+      // if (userAuth !== true) {
+      //   return {
+      //     ...userAuth,
+      //     publisher: null,
+      //   };
+      // }
 
       const { name, address, website } = input;
       const { country, zipCode, city, street, buildingNr, placeNr } = address;
@@ -172,13 +172,13 @@ export const publisherResolvers = {
       { id }: { id: string },
       { prisma, req }: Context
     ) => {
-      const userAuth = await authCheck({ req, prisma });
-      if (userAuth !== true) {
-        return {
-          ...userAuth,
-          publisher: null,
-        };
-      }
+      // const userAuth = await authCheck({ req, prisma });
+      // if (userAuth !== true) {
+      //   return {
+      //     ...userAuth,
+      //     publisher: null,
+      //   };
+      // }
       const publisherExists = await prisma.publisher.findUnique({
         where: {
           id,
@@ -213,13 +213,13 @@ export const publisherResolvers = {
       { req, prisma }: Context
     ) => {
       const { id } = input;
-      const userAuth = await authCheck({ req, prisma });
-      if (userAuth !== true) {
-        return {
-          ...userAuth,
-          publisher: null,
-        };
-      }
+      // const userAuth = await authCheck({ req, prisma });
+      // if (userAuth !== true) {
+      //   return {
+      //     ...userAuth,
+      //     publisher: null,
+      //   };
+      // }
       const publisherExists = await prisma.publisher.findUnique({
         where: {
           id,

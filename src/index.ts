@@ -2,10 +2,23 @@
 import http from 'http';
 import cluster from 'cluster';
 import os from 'os';
+import session from 'express-session';
 // App Modules
 import { app } from './express';
 import config from '../config';
 import { startApolloServer } from './bookCollection/apolloServer';
+import { Role } from '@prisma/client';
+
+// Session type extension. Don't know why but it works here and not where it's supposed to
+declare module 'express-session' {
+  interface SessionData {
+    user: {
+      id: string;
+      profileId: string;
+      role: Role;
+    };
+  }
+}
 
 const numCPUs = os.cpus().length;
 const { host, backPort } = config;

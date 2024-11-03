@@ -18,7 +18,7 @@ export const bookSessions = session({
   secret: config.secret,
   resave: true,
   saveUninitialized: true,
-  genid: function (req) {
+  genid: function () {
     return uuidv4(); //Use UUIDs for session IDs
   },
   name: 'session',

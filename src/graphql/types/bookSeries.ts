@@ -103,14 +103,14 @@ export const bookSeriesResolvers = {
     ): Promise<BookSeriesPayloadType> => {
       // const collectionNull = { bookSeries: null };
       console.log('ADDING BOOK SERIES');
-      const userAuth = await authCheck({ req, prisma });
+      // const userAuth = await authCheck({ req, prisma });
 
-      if (userAuth !== true) {
-        return {
-          ...userAuth,
-          ...{ bookSeries: null },
-        };
-      }
+      // if (userAuth !== true) {
+      //   return {
+      //     ...userAuth,
+      //     ...{ bookSeries: null },
+      //   };
+      // }
       const { name, booksInBookSeries } = input;
       if (name === '') {
         return {
@@ -150,13 +150,13 @@ export const bookSeriesResolvers = {
       { id }: { id: string },
       { prisma, req }: Context
     ): Promise<BookSeriesPayloadType> => {
-      const userAuth = await authCheck({ req, prisma });
-      if (userAuth !== true) {
-        return {
-          ...userAuth,
-          bookSeries: null,
-        };
-      }
+      // const userAuth = await authCheck({ req, prisma });
+      // if (userAuth !== true) {
+      //   return {
+      //     ...userAuth,
+      //     bookSeries: null,
+      //   };
+      // }
       const bookSeriesExists = await prisma.bookSeries.findUnique({
         where: {
           id,
@@ -193,13 +193,13 @@ export const bookSeriesResolvers = {
     ): Promise<BookSeriesPayloadType> => {
       const { name, booksInBookSeries } = input;
       const { tome, bookId } = booksInBookSeries;
-      const userAuth = await authCheck({ req, prisma });
-      if (userAuth !== true) {
-        return {
-          ...userAuth,
-          bookSeries: null,
-        };
-      }
+      // const userAuth = await authCheck({ req, prisma });
+      // if (userAuth !== true) {
+      //   return {
+      //     ...userAuth,
+      //     bookSeries: null,
+      //   };
+      // }
 
       const bookSeriesExists = prisma.bookSeries.findUnique({
         where: {

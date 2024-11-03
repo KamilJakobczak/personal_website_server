@@ -3,7 +3,9 @@ import { handleUpload } from '../utility/handleUpload';
 import config from '../../config';
 
 export const uploadRouter = express.Router();
+
 const { host, frontPort } = config;
+
 // Middleware for All Routes
 uploadRouter.use((req, res, next) => {
   {

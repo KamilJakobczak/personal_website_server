@@ -91,7 +91,7 @@ export const profileResolvers = {
   Profile: {
     booksRead: () => {},
     isMyProfile: async (_: any, { id }: { id: string }, { req }: Context) => {
-      if (req.session.user.profileId === id) {
+      if (req.session.user?.profileId === id) {
         return true;
       } else return false;
     },

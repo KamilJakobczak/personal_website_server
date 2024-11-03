@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "start": "NODE_ENV=development ts-node src/index.ts",
+    "start": "set NODE_ENV=development ts-node src/index.ts",
     "build": "set NODE_ENV=production && tsc -p ."
   },
   "author": "",

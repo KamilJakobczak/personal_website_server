@@ -3,12 +3,12 @@ import { Context } from '../../bookCollection/prismaClient';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
 
-import { User, Prisma } from '@prisma/client';
+import { User, Prisma, Role } from '@prisma/client';
 
-enum ROLE {
-  USER = 'USER',
-  ADMIN = 'ADMIN',
-}
+// export enum Role {
+//   USER = 'USER',
+//   ADMIN = 'ADMIN',
+// }
 type Credentials = {
   email: string;
   password: string;
@@ -36,8 +36,8 @@ interface AuthPayload {
   }[];
   user: {
     id: string;
-    profileId: string;
-    role: ROLE;
+    profileId: string | null;
+    role: Role;
   } | null;
 }
 
@@ -87,8 +87,8 @@ export const user = gql`
     password: String!
   }
   enum ROLE {
-    ADMIN
     USER
+    ADMIN
   }
 `;
 
@@ -134,6 +134,8 @@ export const userResolvers = {
       { credentials }: SigninArgs,
       { prisma, req }: Context
     ): Promise<UserPayload> => {
+      console.log('INSIDE SIGNIN');
+
       const { email, password } = credentials;
       const user = await prisma.user.findUnique({
         where: {
@@ -169,9 +171,10 @@ export const userResolvers = {
 
       const sessionUser = {
         id: user.id,
-        profileId: profile?.id,
+        profileId: profile?.id || '',
         role: user.role,
       };
+      console.log(sessionUser);
       req.session.user = sessionUser;
 
       return {
@@ -260,7 +263,7 @@ export const userResolvers = {
 
       const sessionUser = {
         id: user.id,
-        profileId: profile?.id,
+        profileId: profile?.id || '',
         role: user.role,
       };
       req.session.user = sessionUser;

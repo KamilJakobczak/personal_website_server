@@ -1,7 +1,7 @@
 // Apollo and Express
 import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
 import { ApolloServer } from 'apollo-server-express';
-import { Express } from 'express';
+import { Express, Request, Response } from 'express';
 import { Server } from 'http';
 // App Modules
 import { prisma, Context } from './prismaClient';
@@ -11,9 +11,9 @@ import config from '../../config';
 
 export const startApolloServer = async (app: Express, httpServer: Server) => {
   try {
-    const server = new ApolloServer({
+    const server = new ApolloServer<Context>({
       schema,
-      context: async ({ req, res }: any): Promise<Context> => {
+      context: async ({ req, res }): Promise<Context> => {
         return { prisma, req, res };
       },
       csrfPrevention: true,

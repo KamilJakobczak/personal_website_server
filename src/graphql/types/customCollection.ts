@@ -2,6 +2,7 @@ import { gql } from 'apollo-server';
 import { Context } from '../../bookCollection/prismaClient';
 import { authCheck } from './resolvers/auth';
 import { CustomCollection, Prisma } from '@prisma/client';
+import session = require('express-session');
 
 interface CustomCollectionPayloadType {
   userErrors: {
@@ -84,6 +85,12 @@ export const customCollectionResolvers = {
       { name, published }: { name: string; published: boolean },
       { prisma, req }: Context
     ): Promise<CustomCollectionPayloadType> => {
+      if (!req?.session?.user) {
+        return {
+          userErrors: [{ message: 'Auth check failed' }],
+          customCollection: null,
+        };
+      }
       const { profileId } = req.session.user;
 
       if (!profileId) {
@@ -116,6 +123,12 @@ export const customCollectionResolvers = {
       { id }: { id: string },
       { prisma, req }: Context
     ): Promise<CustomCollectionPayloadType> => {
+      if (!req?.session?.user) {
+        return {
+          userErrors: [{ message: 'Auth check failed' }],
+          customCollection: null,
+        };
+      }
       const { profileId } = req.session.user;
 
       if (!profileId) {
@@ -139,6 +152,12 @@ export const customCollectionResolvers = {
       { id, bookId }: { id: string; bookId: string },
       { prisma, req }: Context
     ): Promise<CustomCollectionPayloadType> => {
+      if (!req?.session?.user) {
+        return {
+          userErrors: [{ message: 'Auth check failed' }],
+          customCollection: null,
+        };
+      }
       const { profileId } = req.session.user;
 
       if (!profileId) {
