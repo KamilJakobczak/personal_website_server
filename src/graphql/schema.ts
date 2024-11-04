@@ -1,4 +1,8 @@
+import { applyMiddleware } from 'graphql-middleware';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import gql from 'graphql-tag';
 import { merge } from 'lodash';
+import { combinedMiddleware } from './middlewares';
 import {
   author,
   authorResolvers,
@@ -21,8 +25,6 @@ import {
   userResolvers,
   userBookDetailsResolvers,
 } from './types';
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import gql from 'graphql-tag';
 
 gql;
 
@@ -62,4 +64,15 @@ const schema = makeExecutableSchema({
     userResolvers
   ),
 });
-export default schema;
+
+const middleware = {
+  Query: {
+    books: combinedMiddleware,
+  },
+  Mutation: {
+    addBook: combinedMiddleware,
+  },
+};
+
+const schemaWithMiddleware = applyMiddleware(schema, middleware);
+export default schemaWithMiddleware;

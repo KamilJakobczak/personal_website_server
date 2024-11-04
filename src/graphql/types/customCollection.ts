@@ -1,8 +1,7 @@
 import { gql } from 'apollo-server';
 import { Context } from '../../bookCollection/prismaClient';
-import { authCheck } from './resolvers/auth';
+
 import { CustomCollection, Prisma } from '@prisma/client';
-import session = require('express-session');
 
 interface CustomCollectionPayloadType {
   userErrors: {

@@ -1,7 +1,6 @@
 import gql from 'graphql-tag';
 import { Author, BioPages, Prisma } from '@prisma/client';
 import { Context } from '../../bookCollection/prismaClient';
-import { authCheck } from './resolvers/auth';
 
 interface BooksParentType {
   id: string;

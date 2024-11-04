@@ -1,7 +1,6 @@
 import { Genre, Prisma } from '@prisma/client';
 import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
-import { authCheck } from './resolvers/auth';
 
 interface BooksParentType {
   id: string;

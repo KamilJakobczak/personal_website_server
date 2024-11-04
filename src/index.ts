@@ -7,11 +7,11 @@ import session from 'express-session';
 import { app } from './express';
 import config from '../config';
 import { startApolloServer } from './bookCollection/apolloServer';
-import { Role } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 
 // Session type extension. Don't know why but it works here and not where it's supposed to
 declare module 'express-session' {
-  interface SessionData {
+  export interface SessionData {
     user: {
       id: string;
       profileId: string;
@@ -19,6 +19,16 @@ declare module 'express-session' {
     };
   }
 }
+// declare module 'express-serve-static-core' {
+//   interface Request {
+//     loggedUser?: {
+//       id: string;
+//       name: string | null;
+//       email: string;
+//       role: Role;
+//     };
+//   }
+// }
 
 const numCPUs = os.cpus().length;
 const { host, backPort } = config;

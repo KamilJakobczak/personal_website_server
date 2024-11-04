@@ -1,20 +1,21 @@
 // Apollo and Express
 import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
 import { ApolloServer } from 'apollo-server-express';
-import { Express, Request, Response } from 'express';
+
+import { Express } from 'express';
 import { Server } from 'http';
 // App Modules
 import { prisma, Context } from './prismaClient';
-import schema from '../graphql/schema';
+import schemaWithMiddleware from '../graphql/schema';
 // Configuration
 import config from '../../config';
 
 export const startApolloServer = async (app: Express, httpServer: Server) => {
   try {
     const server = new ApolloServer<Context>({
-      schema,
+      schema: schemaWithMiddleware,
       context: async ({ req, res }): Promise<Context> => {
-        return { prisma, req, res };
+        return { prisma, req, res, user: req.session.user };
       },
       csrfPrevention: true,
       plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],

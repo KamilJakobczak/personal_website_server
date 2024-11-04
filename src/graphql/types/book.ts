@@ -1,7 +1,6 @@
 import { Book, Covers, Language, Prisma, Publisher } from '@prisma/client';
 import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
-import { authCheck } from './resolvers/auth';
 
 interface BooksQueryArgs {
   input?: {
