@@ -312,14 +312,6 @@ export const bookResolvers = {
       { input }: BookArgs,
       { prisma, req }: Context
     ): Promise<BookPayloadType> => {
-      // const userAuth = await authCheck({ req, prisma });
-      // if (userAuth !== true) {
-      //   return {
-      //     ...userAuth,
-      //     book: null,
-      //   };
-      // }
-
       const {
         authors,
         bookGenres,
@@ -333,9 +325,7 @@ export const bookResolvers = {
         titleEnglish,
         titleOriginal,
         translators,
-        // covers,
       } = input;
-      // const { original, big, medium, small } = covers;
 
       // Check whether similar record exists in the database already
       const bookExists = await prisma.book.findFirst({
@@ -403,9 +393,8 @@ export const bookResolvers = {
     deleteBook: async (
       _: any,
       { id }: { id: string },
-      { prisma, req }: Context
+      { prisma }: Context
     ): Promise<DeletePayloadType> => {
-      // const userAuth = await authCheck({ req, prisma });
       const bookExists = await prisma.book.findUnique({
         where: {
           id,
@@ -422,12 +411,6 @@ export const bookResolvers = {
           };
         }
 
-        // if (userAuth !== true) {
-        //   return {
-        //     ...userAuth,
-        //     success: false,
-        //   };
-        // }
         await prisma.book.delete({
           where: {
             id,
@@ -451,9 +434,8 @@ export const bookResolvers = {
     updateBook: async (
       _: any,
       { input }: BookUpdateArgs,
-      { prisma, req }: Context
+      { prisma }: Context
     ): Promise<BookPayloadType> => {
-      // const userAuth = await authCheck({ req, prisma });
       const { id } = input;
 
       const bookExists = await prisma.book.findUnique({
@@ -469,13 +451,6 @@ export const bookResolvers = {
           book: null,
         };
       }
-
-      // if (userAuth !== true) {
-      //   return {
-      //     ...userAuth,
-      //     book: null,
-      //   };
-      // }
 
       const {
         title,

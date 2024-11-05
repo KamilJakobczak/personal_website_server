@@ -119,16 +119,8 @@ export const publisherResolvers = {
     addPublisher: async (
       _: any,
       { input }: PublisherArgs,
-      { req, prisma }: Context
+      { prisma }: Context
     ): Promise<PublisherPayloadType> => {
-      // const userAuth = await authCheck({ req, prisma });
-      // if (userAuth !== true) {
-      //   return {
-      //     ...userAuth,
-      //     publisher: null,
-      //   };
-      // }
-
       const { name, address, website } = input;
       const { country, zipCode, city, street, buildingNr, placeNr } = address;
 
@@ -169,15 +161,8 @@ export const publisherResolvers = {
     deletePublisher: async (
       _: any,
       { id }: { id: string },
-      { prisma, req }: Context
+      { prisma }: Context
     ) => {
-      // const userAuth = await authCheck({ req, prisma });
-      // if (userAuth !== true) {
-      //   return {
-      //     ...userAuth,
-      //     publisher: null,
-      //   };
-      // }
       const publisherExists = await prisma.publisher.findUnique({
         where: {
           id,
@@ -209,16 +194,9 @@ export const publisherResolvers = {
     updatePublisher: async (
       _: any,
       { input }: PublisherUpdateArgs,
-      { req, prisma }: Context
+      { prisma }: Context
     ) => {
       const { id } = input;
-      // const userAuth = await authCheck({ req, prisma });
-      // if (userAuth !== true) {
-      //   return {
-      //     ...userAuth,
-      //     publisher: null,
-      //   };
-      // }
       const publisherExists = await prisma.publisher.findUnique({
         where: {
           id,

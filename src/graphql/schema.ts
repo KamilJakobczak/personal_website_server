@@ -2,7 +2,7 @@ import { applyMiddleware } from 'graphql-middleware';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import gql from 'graphql-tag';
 import { merge } from 'lodash';
-import { combinedMiddleware } from './middlewares';
+import { combinedMiddleware, isLoggedInMiddleware } from './middlewares';
 import {
   author,
   authorResolvers,
@@ -67,10 +67,40 @@ const schema = makeExecutableSchema({
 
 const middleware = {
   Query: {
-    books: combinedMiddleware,
+    checkLogin: isLoggedInMiddleware,
   },
   Mutation: {
+    // Log in required
+    createCustomCollection: isLoggedInMiddleware,
+    deleteCustomCollection: isLoggedInMiddleware,
+    updateCustomCollection: isLoggedInMiddleware,
+    createProfile: isLoggedInMiddleware,
+    deleteProfile: isLoggedInMiddleware,
+    updateProfile: isLoggedInMiddleware,
+    signout: isLoggedInMiddleware,
+    userBookDetails: isLoggedInMiddleware,
+    addUserBookDetails: isLoggedInMiddleware,
+    deleteUserBookDetails: isLoggedInMiddleware,
+    updateUserBookDetails: isLoggedInMiddleware,
+    // Admin rights required
+    addAuthor: combinedMiddleware,
+    deleteAuthor: combinedMiddleware,
+    updateAuthor: combinedMiddleware,
     addBook: combinedMiddleware,
+    deleteBook: combinedMiddleware,
+    updateBook: combinedMiddleware,
+    addBookSeries: combinedMiddleware,
+    deleteBookSeries: combinedMiddleware,
+    updateBookSeries: combinedMiddleware,
+    addGenre: combinedMiddleware,
+    deleteGenre: combinedMiddleware,
+    updateGenre: combinedMiddleware,
+    addPublisher: combinedMiddleware,
+    deletePublisher: combinedMiddleware,
+    updatePublisher: combinedMiddleware,
+    addTranslator: combinedMiddleware,
+    deleteTranslator: combinedMiddleware,
+    updateTranslator: combinedMiddleware,
   },
 };
 

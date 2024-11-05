@@ -1,12 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { IMiddlewareFunction } from 'graphql-middleware';
 import { Context, prisma } from '../bookCollection/prismaClient';
+import { assertSessionUser } from './utils/typeGuards';
 
-export const isLoggedIn = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const isLoggedIn = async (req: Request, res: Response, next: NextFunction) => {
   if (!req.session.user) {
     return res.status(401).json({ message: 'No session cookie, log in first' });
   }
@@ -20,16 +17,12 @@ export const isLoggedIn = async (
   if (!dbUser) {
     return res.status(404).json({ message: 'User not found' });
   }
-
+  // assertSessionUser(req);
   next();
 };
 
-export const isAdmin = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  console.log(req.session.user);
+const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
+  // assertSessionUser(req);
   if (req.session.user?.role !== 'ADMIN') {
     return res
       .status(403)
@@ -57,5 +50,21 @@ export const combinedMiddleware: IMiddlewareFunction = async (
     });
   });
   // Proceed with the resolver function
+  return resolve(parent, args, context, info);
+};
+
+export const isLoggedInMiddleware: IMiddlewareFunction = async (
+  resolve,
+  parent,
+  args,
+  context: Context,
+  info
+) => {
+  await new Promise<void>((resolve, reject) => {
+    isLoggedIn(context.req, context.res, (err: any) => {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
   return resolve(parent, args, context, info);
 };

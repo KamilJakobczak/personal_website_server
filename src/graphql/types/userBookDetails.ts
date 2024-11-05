@@ -8,6 +8,7 @@ import {
 } from '@prisma/client';
 import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
+import { assertSessionUser } from '../utils/typeGuards';
 
 export const userBookDetails = gql`
   extend type Query {
@@ -156,55 +157,39 @@ export const userBookDetailsResolvers = {
       { bookId }: { bookId: string },
       { prisma, req }: Context
     ): Promise<UserBookDetailsPayloadType> => {
-      // if (!id && !bookId) {
-      //   return {
-      //     userErrors: [{ message: 'Provide a valid id' }],
-      //     userBookDetails: null,
-      //   };
-      // }
+      assertSessionUser(req);
+      const { profileId } = req.session.user;
 
-      const { user } = req.session;
+      const profile = await prisma.profile.findUnique({
+        where: {
+          id: profileId,
+        },
+      });
 
-      if (user) {
-        const { profileId } = user;
-        const profile = await prisma.profile.findUnique({
-          where: {
-            id: profileId,
-          },
-        });
-        if (profile) {
-          const record = await prisma.userBookDetails.findFirst({
-            where: {
-              bookID: bookId,
-              profileID: profileId,
-            },
-          });
-          if (record) {
-            console.log(record);
-            return {
-              userErrors: [{ message: '' }],
-              userBookDetails: record,
-            };
-          } else
-            return {
-              userErrors: [{ message: '' }],
-              userBookDetails: null,
-            };
-        }
+      if (!profile) {
+        return {
+          userErrors: [{ message: 'Profile not found' }],
+          userBookDetails: null,
+        };
       }
-      return {
-        userErrors: [{ message: 'User not logged in' }],
-        userBookDetails: null,
-      };
+      const record = await prisma.userBookDetails.findFirst({
+        where: {
+          bookID: bookId,
+          profileID: profileId,
+        },
+      });
 
-      // return {
-      //   userErrors: [{ message: '' }],
-      //   userBookDetails: await prisma.userBookDetails.findUnique({
-      //     where: {
-      //       id,
-      //     },
-      //   }),
-      // };
+      if (!record) {
+        return {
+          userErrors: [{ message: 'Details not found' }],
+          userBookDetails: null,
+        };
+      }
+
+      return {
+        userErrors: [{ message: '' }],
+        userBookDetails: record,
+      };
     },
   },
   UserBookDetails: {
@@ -229,12 +214,7 @@ export const userBookDetailsResolvers = {
       { input }: UserBookDetailsArgs,
       { prisma, req }: Context
     ): Promise<UserBookDetailsPayloadType> => {
-      if (!req.session.user) {
-        return {
-          userErrors: [{ message: 'Log in first' }],
-          userBookDetails: null,
-        };
-      }
+      assertSessionUser(req);
       const { bookID, bookDetails } = input;
       const { profileId } = req.session.user;
       const recordExists = await prisma.userBookDetails.findFirst({
@@ -271,12 +251,7 @@ export const userBookDetailsResolvers = {
       { id, input }: UserBookDetailsUpdateArgs,
       { prisma, req }: Context
     ): Promise<UserBookDetailsPayloadType> => {
-      if (!req.session.user) {
-        return {
-          userErrors: [{ message: 'Log in first' }],
-          userBookDetails: null,
-        };
-      }
+      assertSessionUser(req);
       const userBookDetailsRecord = await prisma.userBookDetails.findUnique({
         where: {
           id,
@@ -337,12 +312,7 @@ export const userBookDetailsResolvers = {
       { id }: { id: string },
       { prisma, req }: Context
     ): Promise<UserBookDetailsPayloadType> => {
-      if (!req.session.user) {
-        return {
-          userErrors: [{ message: 'Log in first' }],
-          userBookDetails: null,
-        };
-      }
+      assertSessionUser(req);
       const userBookDetailsRecord = await prisma.userBookDetails.findUnique({
         where: {
           id,

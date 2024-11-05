@@ -18,12 +18,7 @@ interface GenrePayloadType {
   }[];
   genre: Genre | Prisma.Prisma__GenreClient<Genre> | null;
 }
-// interface GenreBooksPayloadType {
-//   userErrors: {
-//     message: string;
-//   }[];
-//   books: Book | Prisma.Prisma__BookClient<Book> | null;
-// }
+
 export const genre = gql`
   extend type Query {
     genre(id: ID!): Genre
@@ -88,15 +83,8 @@ export const genreResolvers = {
     addGenre: async (
       _: any,
       { input }: GenreArgs,
-      { req, prisma }: Context
+      { prisma }: Context
     ): Promise<GenrePayloadType> => {
-      // const userAuth = await authCheck({ req, prisma });
-      // if (userAuth !== true) {
-      //   return {
-      //     ...userAuth,
-      //     ...{ genre: null },
-      //   };
-      // }
       const { name } = input;
       const doesExist = await prisma.genre.findFirst({
         where: {
@@ -125,17 +113,9 @@ export const genreResolvers = {
     updateGenre: async (
       _: any,
       { id, input }: GenreUpdateArgs,
-      { prisma, req }: Context
+      { prisma }: Context
     ): Promise<GenrePayloadType> => {
       const { name } = input;
-
-      // const userAuth = await authCheck({ req, prisma });
-      // if (userAuth !== true) {
-      //   return {
-      //     ...userAuth,
-      //     genre: null,
-      //   };
-      // }
 
       const genreExists = prisma.genre.findUnique({
         where: {
@@ -171,16 +151,8 @@ export const genreResolvers = {
     deleteGenre: async (
       _: any,
       { id }: { id: string },
-      { prisma, req }: Context
+      { prisma }: Context
     ): Promise<GenrePayloadType> => {
-      const genreNull = { genre: null };
-      // const userAuth = await authCheck({ req, prisma });
-      // if (userAuth !== true) {
-      //   return {
-      //     ...userAuth,
-      //     ...genreNull,
-      //   };
-      // }
       const genreExists = prisma.genre.findUnique({
         where: {
           id,

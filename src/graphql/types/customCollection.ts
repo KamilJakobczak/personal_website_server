@@ -2,6 +2,7 @@ import { gql } from 'apollo-server';
 import { Context } from '../../bookCollection/prismaClient';
 
 import { CustomCollection, Prisma } from '@prisma/client';
+import { assertSessionUser } from '../utils/typeGuards';
 
 interface CustomCollectionPayloadType {
   userErrors: {
@@ -20,9 +21,9 @@ export const customCollection = gql`
 }
 
   type Mutation {
-    createCollection(input: CreateCollectionInput!): CustomCollectionPayload!
-    editCollection(): CustomCollectionPayload!
-    removeCollection(id: ID!): CustomCollectionPayload!
+    createCustomCollection(input: CreateCollectionInput!): CustomCollectionPayload!
+    deleteCustomCollection(id: ID!): CustomCollectionPayload!
+    updateCustomCollection(): CustomCollectionPayload!
   }
 
   type CustomCollection implements Node {
@@ -84,12 +85,7 @@ export const customCollectionResolvers = {
       { name, published }: { name: string; published: boolean },
       { prisma, req }: Context
     ): Promise<CustomCollectionPayloadType> => {
-      if (!req?.session?.user) {
-        return {
-          userErrors: [{ message: 'Auth check failed' }],
-          customCollection: null,
-        };
-      }
+      assertSessionUser(req);
       const { profileId } = req.session.user;
 
       if (!profileId) {
@@ -122,49 +118,8 @@ export const customCollectionResolvers = {
       { id }: { id: string },
       { prisma, req }: Context
     ): Promise<CustomCollectionPayloadType> => {
-      if (!req?.session?.user) {
-        return {
-          userErrors: [{ message: 'Auth check failed' }],
-          customCollection: null,
-        };
-      }
+      assertSessionUser(req);
       const { profileId } = req.session.user;
-
-      if (!profileId) {
-        return {
-          userErrors: [{ message: 'You are not logged in' }],
-          customCollection: null,
-        };
-      }
-
-      const customCollection = await prisma.customCollection.delete({
-        where: { id: id },
-      });
-
-      return {
-        userErrors: [{ message: '' }],
-        customCollection: customCollection,
-      };
-    },
-    updateCustomColletion: async (
-      _: any,
-      { id, bookId }: { id: string; bookId: string },
-      { prisma, req }: Context
-    ): Promise<CustomCollectionPayloadType> => {
-      if (!req?.session?.user) {
-        return {
-          userErrors: [{ message: 'Auth check failed' }],
-          customCollection: null,
-        };
-      }
-      const { profileId } = req.session.user;
-
-      if (!profileId) {
-        return {
-          userErrors: [{ message: 'You are not logged in' }],
-          customCollection: null,
-        };
-      }
       const customCollection = await prisma.customCollection.findUnique({
         where: { id },
       });
@@ -172,6 +127,45 @@ export const customCollectionResolvers = {
       if (!customCollection) {
         return {
           userErrors: [{ message: "Collection doesn't exist" }],
+          customCollection: null,
+        };
+      }
+      if (profileId !== customCollection.profileID) {
+        return {
+          userErrors: [
+            { message: 'You are not authorized to edit this collection' },
+          ],
+          customCollection: null,
+        };
+      }
+
+      return {
+        userErrors: [{ message: '' }],
+        customCollection: prisma.customCollection.delete({ where: { id } }),
+      };
+    },
+    updateCustomColletion: async (
+      _: any,
+      { id, bookId }: { id: string; bookId: string },
+      { prisma, req }: Context
+    ): Promise<CustomCollectionPayloadType> => {
+      assertSessionUser(req);
+      const { profileId } = req.session.user;
+      const customCollection = await prisma.customCollection.findUnique({
+        where: { id },
+      });
+
+      if (!customCollection) {
+        return {
+          userErrors: [{ message: "Collection doesn't exist" }],
+          customCollection: null,
+        };
+      }
+      if (profileId !== customCollection.profileID) {
+        return {
+          userErrors: [
+            { message: 'You are not authorized to edit this collection' },
+          ],
           customCollection: null,
         };
       }

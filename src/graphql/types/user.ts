@@ -5,10 +5,6 @@ import bcrypt from 'bcryptjs';
 
 import { User, Prisma, Role } from '@prisma/client';
 
-// export enum Role {
-//   USER = 'USER',
-//   ADMIN = 'ADMIN',
-// }
 type Credentials = {
   email: string;
   password: string;
@@ -134,8 +130,6 @@ export const userResolvers = {
       { credentials }: SigninArgs,
       { prisma, req }: Context
     ): Promise<UserPayload> => {
-      console.log('INSIDE SIGNIN');
-
       const { email, password } = credentials;
       const user = await prisma.user.findUnique({
         where: {
@@ -277,30 +271,21 @@ export const userResolvers = {
     signout: async (
       _: any,
       __: any,
-      { req, res }: Context
+      { req }: Context
     ): Promise<AuthPayload> => {
-      if (req.session && req.session.user) {
-        req.session.destroy((err: any) => {
-          if (err) {
-            console.log(err);
-            return {
-              authenticated: false,
-              userErrors: [{ message: err }],
-              user: null,
-            };
-          } else {
-          }
-        });
-      } else {
-        return {
-          authenticated: false,
-          userErrors: [{ message: "You can't do that" }],
-          user: null,
-        };
-      }
+      req.session.destroy((err: any) => {
+        if (err) {
+          console.log(err);
+          return {
+            authenticated: false,
+            userErrors: [{ message: err }],
+            user: null,
+          };
+        }
+      });
 
       return {
-        authenticated: false,
+        authenticated: true,
         userErrors: [{ message: '' }],
         user: null,
       };

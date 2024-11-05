@@ -1,6 +1,7 @@
 import { Prisma, prisma, Profile, UserBookDetails } from '@prisma/client';
 import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
+import { assertSessionUser } from '../utils/typeGuards';
 
 export const profile = gql`
   extend type Query {
@@ -163,13 +164,7 @@ export const profileResolvers = {
       { id, input }: AddBookToShelfArgs,
       { prisma, req }: Context
     ): Promise<AddBookToShelfPayloadType> => {
-      if (!req.session.user) {
-        return {
-          userErrors: [{ message: 'Log in first' }],
-          profile: null,
-          bookDetails: null,
-        };
-      }
+      assertSessionUser(req);
       const { profileId } = req.session.user;
 
       if (id !== profileId) {

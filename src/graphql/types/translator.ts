@@ -77,17 +77,9 @@ export const translatorResolvers = {
     addTranslator: async (
       _: any,
       { input }: TranslatorArgs,
-      { req, prisma }: Context
+      { prisma }: Context
     ): Promise<TranslatorPayloadType> => {
       const { firstName, lastName } = input;
-
-      // const userAuth = await authCheck({ req, prisma });
-      // if (userAuth !== true) {
-      //   return {
-      //     ...userAuth,
-      //     ...{ translator: null },
-      //   };
-      // }
 
       const doesExist = await prisma.translator.findFirst({
         where: {
@@ -124,7 +116,7 @@ export const translatorResolvers = {
     deleteTranslator: async (
       _: any,
       { id }: { id: string },
-      { prisma, req }: Context
+      { prisma }: Context
     ): Promise<TranslatorPayloadType> => {
       const translatorExists = await prisma.translator.findUnique({
         where: {
@@ -154,17 +146,9 @@ export const translatorResolvers = {
     updateTranslator: async (
       _: any,
       { id, input }: TranslatorUpdateArgs,
-      { prisma, req }: Context
+      { prisma }: Context
     ): Promise<TranslatorPayloadType> => {
       const { firstName, lastName } = input;
-      // const userAuth = await authCheck({ req, prisma });
-      // if (userAuth !== true) {
-      //   return {
-      //     ...userAuth,
-      //     translator: null,
-      //   };
-      // }
-
       const translatorExists = await prisma.translator.findUnique({
         where: {
           id,
