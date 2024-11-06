@@ -1,6 +1,7 @@
 import gql from 'graphql-tag';
 import { Author, BioPages, Prisma } from '@prisma/client';
 import { Context } from '../../bookCollection/prismaClient';
+import { DeletePayloadType } from '../utils/types';
 
 interface BooksParentType {
   id: string;
@@ -34,7 +35,7 @@ interface AuthorUpdateArgs {
     };
   };
 }
-String;
+
 interface AuthorPayloadType {
   userErrors: {
     message: string;
@@ -50,7 +51,7 @@ export const author = gql`
 
   type Mutation {
     addAuthor(input: addAuthorInput!): AuthorPayload!
-    deleteAuthor(id: ID!): AuthorPayload!
+    deleteAuthor(id: ID!): DeletePayload!
     updateAuthor(input: updateAuthorInput!): AuthorPayload!
   }
   type Author implements Node {
@@ -78,6 +79,7 @@ export const author = gql`
     userErrors: [userError!]!
     author: Author
   }
+ 
   input bioPagesInput {
     wiki: String
     goodreads: String
@@ -203,20 +205,39 @@ export const authorResolvers = {
     deleteAuthor: async (
       _: any,
       { id }: { id: string },
-      { prisma, req }: Context
-    ): Promise<AuthorPayloadType> => {
-      return {
-        userErrors: [
-          {
-            message: '',
-          },
-        ],
-        author: prisma.author.delete({
+      { prisma }: Context
+    ): Promise<DeletePayloadType> => {
+      try {
+        const authorExists = await prisma.author.findUnique({
           where: {
             id,
           },
-        }),
-      };
+        });
+
+        if (!authorExists) {
+          return {
+            userErrors: [{ message: 'Author does not exist in the database' }],
+            success: false,
+          };
+        }
+
+        await prisma.author.delete({
+          where: {
+            id,
+          },
+        });
+
+        return {
+          userErrors: [{ message: '' }],
+          success: true,
+        };
+      } catch (error) {
+        console.error('Error deleting author', error);
+        return {
+          userErrors: [{ message: `${error}` }],
+          success: false,
+        };
+      }
     },
     updateAuthor: async (
       _: any,

@@ -1,6 +1,7 @@
 import { Book, Covers, Language, Prisma, Publisher } from '@prisma/client';
 import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
+import { DeletePayloadType } from '../utils/types';
 
 interface BooksQueryArgs {
   input?: {
@@ -52,12 +53,6 @@ interface BookPayloadType {
   }[];
   book: Book | Prisma.Prisma__BookClient<Book> | null;
 }
-interface DeletePayloadType {
-  userErrors: {
-    message: string;
-  }[];
-  success: boolean;
-}
 
 export const book = gql`
   extend type Query {
@@ -97,10 +92,7 @@ export const book = gql`
     userErrors: [userError!]!
     book: Book
   }
-  type DeletePayload {
-    userErrors: [userError!]!
-    success: Boolean!
-  }
+  
   type userError {
     message: String!
   }
@@ -395,18 +387,16 @@ export const bookResolvers = {
       { id }: { id: string },
       { prisma }: Context
     ): Promise<DeletePayloadType> => {
-      const bookExists = await prisma.book.findUnique({
-        where: {
-          id,
-        },
-      });
-
       try {
+        const bookExists = await prisma.book.findUnique({
+          where: {
+            id,
+          },
+        });
+
         if (!bookExists) {
           return {
-            ...{
-              userErrors: [{ message: 'Book does not exist in the database' }],
-            },
+            userErrors: [{ message: 'Book does not exist in the database' }],
             success: false,
           };
         }
@@ -416,15 +406,13 @@ export const bookResolvers = {
             id,
           },
         });
+
         return {
-          userErrors: [
-            {
-              message: '',
-            },
-          ],
+          userErrors: [{ message: '' }],
           success: true,
         };
       } catch (error) {
+        console.error('Error deleting book', error);
         return {
           userErrors: [{ message: `${error}` }],
           success: false,

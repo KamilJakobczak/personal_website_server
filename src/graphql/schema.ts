@@ -25,12 +25,15 @@ import {
   userResolvers,
   userBookDetailsResolvers,
 } from './types';
-
-gql;
+import { deleteResolver } from './types/resolvers/deleteResolver';
 
 const Query = gql`
   type Query {
     _empty: String
+  }
+  type DeletePayload {
+    userErrors: [userError!]!
+    success: Boolean!
   }
   interface Node {
     id: ID!
@@ -61,7 +64,8 @@ const schema = makeExecutableSchema({
     searchableUnionResolvers,
     translatorResolvers,
     userBookDetailsResolvers,
-    userResolvers
+    userResolvers,
+    deleteResolver
   ),
 });
 
@@ -71,17 +75,17 @@ const middleware = {
   },
   Mutation: {
     // Log in required
-    createCustomCollection: isLoggedInMiddleware,
-    deleteCustomCollection: isLoggedInMiddleware,
-    updateCustomCollection: isLoggedInMiddleware,
+    // createCustomCollection: isLoggedInMiddleware,
+    // deleteCustomCollection: isLoggedInMiddleware,
+    // updateCustomCollection: isLoggedInMiddleware,
     createProfile: isLoggedInMiddleware,
     deleteProfile: isLoggedInMiddleware,
     updateProfile: isLoggedInMiddleware,
     signout: isLoggedInMiddleware,
-    userBookDetails: isLoggedInMiddleware,
-    addUserBookDetails: isLoggedInMiddleware,
-    deleteUserBookDetails: isLoggedInMiddleware,
-    updateUserBookDetails: isLoggedInMiddleware,
+    // userBookDetails: isLoggedInMiddleware,
+    // addUserBookDetails: isLoggedInMiddleware,
+    // deleteUserBookDetails: isLoggedInMiddleware,
+    // updateUserBookDetails: isLoggedInMiddleware,
     // Admin rights required
     addAuthor: combinedMiddleware,
     deleteAuthor: combinedMiddleware,
