@@ -1,4 +1,11 @@
+import { gql } from 'apollo-server';
 import { prisma } from '../../../bookCollection/prismaClient';
+
+export const deleteSingleRecord = gql`
+  extend type Mutation {
+    deleteRecord(model: String!, id: ID!): DeletePayload!
+}
+`;
 // Define the union type for PrismaModel
 export type PrismaModel =
   | 'author'

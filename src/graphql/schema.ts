@@ -25,7 +25,10 @@ import {
   userResolvers,
   userBookDetailsResolvers,
 } from './types';
-import { deleteResolver } from './types/resolvers/deleteResolver';
+import {
+  deleteResolver,
+  deleteSingleRecord,
+} from './types/resolvers/deleteResolver';
 
 const Query = gql`
   type Query {
@@ -57,6 +60,7 @@ const schema = makeExecutableSchema({
     searchableUnion,
     user,
     userBookDetails,
+    deleteSingleRecord,
   ],
   resolvers: merge(
     authorResolvers,
@@ -92,23 +96,18 @@ const middleware = {
     // updateUserBookDetails: isLoggedInMiddleware,
     // Admin rights required
     addAuthor: combinedMiddleware,
-    deleteAuthor: combinedMiddleware,
     updateAuthor: combinedMiddleware,
     addBook: combinedMiddleware,
-    deleteBook: combinedMiddleware,
     updateBook: combinedMiddleware,
     addBookSeries: combinedMiddleware,
-    deleteBookSeries: combinedMiddleware,
     updateBookSeries: combinedMiddleware,
     addGenre: combinedMiddleware,
-    deleteGenre: combinedMiddleware,
     updateGenre: combinedMiddleware,
     addPublisher: combinedMiddleware,
-    deletePublisher: combinedMiddleware,
     updatePublisher: combinedMiddleware,
     addTranslator: combinedMiddleware,
-    deleteTranslator: combinedMiddleware,
     updateTranslator: combinedMiddleware,
+    deleteRecord: combinedMiddleware,
   },
 };
 
