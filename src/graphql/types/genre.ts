@@ -27,7 +27,6 @@ export const genre = gql`
 
   type Mutation {
     addGenre(input: addGenreInput): GenrePayload!
-    deleteGenre(id: ID!): GenrePayload!
     updateGenre(id: ID!, input: updateGenreInput!): GenrePayload!
   }
 
@@ -142,32 +141,6 @@ export const genreResolvers = {
           data: {
             name,
           },
-          where: {
-            id,
-          },
-        }),
-      };
-    },
-    deleteGenre: async (
-      _: any,
-      { id }: { id: string },
-      { prisma }: Context
-    ): Promise<GenrePayloadType> => {
-      const genreExists = prisma.genre.findUnique({
-        where: {
-          id,
-        },
-      });
-      if (!genreExists) {
-        return {
-          userErrors: [{ message: 'genre of specified id does not exist' }],
-          genre: null,
-        };
-      }
-
-      return {
-        userErrors: [{ message: '' }],
-        genre: prisma.genre.delete({
           where: {
             id,
           },

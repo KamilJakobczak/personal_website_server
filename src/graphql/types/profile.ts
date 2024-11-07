@@ -2,6 +2,7 @@ import { Prisma, prisma, Profile, UserBookDetails } from '@prisma/client';
 import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
 import { assertSessionUser } from '../utils/typeGuards';
+import { DeletePayloadType } from './resolvers/deleteResolver';
 
 export const profile = gql`
   extend type Query {
@@ -11,7 +12,7 @@ export const profile = gql`
 
   type Mutation {
     createProfile(input: createProfileInput!): ProfilePayload!
-    deleteProfile(id: ID!): ProfilePayload!
+    deleteProfile(id: ID!): DeletePayload!
     updateProfile(id: ID!, input: updateProfileInput!): ProfilePayload!
     addBookToShelf(id: ID!, input: addBookReadInput!): AddBookToShelfPayload!
   }
@@ -194,6 +195,38 @@ export const profileResolvers = {
           },
         }),
       };
+    },
+    deleteProfile: async (
+      _: any,
+      id: string,
+      { prisma, req }: Context
+    ): Promise<DeletePayloadType> => {
+      // Ensure the user is authenticated
+      assertSessionUser(req);
+      const { profileId } = req.session.user;
+
+      if (id !== profileId) {
+        throw new Error('Seems that it is not your profile');
+      }
+
+      try {
+        await prisma.profile.findUniqueOrThrow({
+          where: { id },
+        });
+        const deletedProfile = prisma.profile.delete({
+          where: { id },
+        });
+        console.log('Deleted profile:', deletedProfile);
+        return {
+          userErrors: [{ message: '' }],
+          success: true,
+        };
+      } catch (error: any) {
+        return {
+          userErrors: [{ message: `${error.message}` }],
+          success: false,
+        };
+      }
     },
   },
 };

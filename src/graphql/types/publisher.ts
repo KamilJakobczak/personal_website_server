@@ -46,7 +46,6 @@ export const publisher = gql`
   }
   type Mutation {
     addPublisher(input: addPublisherInput): PublisherPayload!
-    deletePublisher(id: ID!): PublisherPayload!
     updatePublisher(input: updatePublisherInput!): PublisherPayload!
   }
   type Publisher implements Node {
@@ -158,39 +157,7 @@ export const publisherResolvers = {
         }),
       };
     },
-    deletePublisher: async (
-      _: any,
-      { id }: { id: string },
-      { prisma }: Context
-    ) => {
-      const publisherExists = await prisma.publisher.findUnique({
-        where: {
-          id,
-        },
-      });
-      if (!publisherExists) {
-        return {
-          ...{
-            userErrors: [
-              { message: 'Publisher does not exist in the database' },
-            ],
-          },
-          publisher: null,
-        };
-      }
-      return {
-        userErrors: [
-          {
-            message: '',
-          },
-        ],
-        publisher: prisma.publisher.delete({
-          where: {
-            id,
-          },
-        }),
-      };
-    },
+
     updatePublisher: async (
       _: any,
       { input }: PublisherUpdateArgs,

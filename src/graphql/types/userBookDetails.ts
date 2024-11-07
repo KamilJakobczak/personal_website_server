@@ -9,6 +9,7 @@ import {
 import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
 import { assertSessionUser } from '../utils/typeGuards';
+import { DeletePayloadType } from './resolvers/deleteResolver';
 
 export const userBookDetails = gql`
   extend type Query {
@@ -21,7 +22,7 @@ export const userBookDetails = gql`
       id: ID!
       input: updateUserBookDetailsInput!
     ): UserBookDetailsPayload!
-    deleteUserBookDetails(id: ID!): UserBookDetailsPayload!
+    deleteUserBookDetails(id: ID!): DeletePayload!
   }
 
   type UserBookDetails implements Node {
@@ -311,37 +312,32 @@ export const userBookDetailsResolvers = {
       _: any,
       { id }: { id: string },
       { prisma, req }: Context
-    ): Promise<UserBookDetailsPayloadType> => {
+    ): Promise<DeletePayloadType> => {
+      // Ensure the user is authenticated
       assertSessionUser(req);
-      const userBookDetailsRecord = await prisma.userBookDetails.findUnique({
-        where: {
-          id,
-        },
-      });
-      if (!userBookDetailsRecord) {
-        return {
-          userErrors: [
-            { message: 'You are trying to update non exisiting record' },
-          ],
-          userBookDetails: null,
-        };
-      }
 
-      if (userBookDetailsRecord.profileID !== req.session.user.profileId) {
-        return {
-          userErrors: [{ message: 'Log in to YOUR account' }],
-          userBookDetails: null,
-        };
-      }
-
-      return {
-        userErrors: [{ message: '' }],
-        userBookDetails: prisma.userBookDetails.delete({
+      try {
+        const userBookDetails = await prisma.userBookDetails.findUniqueOrThrow({
           where: {
             id,
           },
-        }),
-      };
+        });
+        if (userBookDetails.profileID !== req.session.user.profileId) {
+          throw new Error("You can't delete details that are not yours");
+        }
+        await prisma.userBookDetails.delete({ where: { id } });
+
+        return {
+          userErrors: [{ message: '' }],
+          success: true,
+        };
+      } catch (error: any) {
+        console.error('Error deleting your book details', error);
+        return {
+          userErrors: [{ message: `${error.message}` }],
+          success: false,
+        };
+      }
     },
   },
 };

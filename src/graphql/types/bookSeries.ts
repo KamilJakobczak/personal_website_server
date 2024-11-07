@@ -36,7 +36,6 @@ export const bookSeries = gql`
 
   type Mutation {
     addBookSeries(input: addBookSeriesInput!): BookSeriesPayload!
-    deleteBookSeries(id: ID!): BookSeriesPayload!
     updateBookSeries(id: ID!, input: updateBookSeriesInput!): BookSeriesPayload
   }
 
@@ -134,40 +133,7 @@ export const bookSeriesResolvers = {
         }),
       };
     },
-    deleteBookSeries: async (
-      _: any,
-      { id }: { id: string },
-      { prisma }: Context
-    ): Promise<BookSeriesPayloadType> => {
-      const bookSeriesExists = await prisma.bookSeries.findUnique({
-        where: {
-          id,
-        },
-      });
-      if (!bookSeriesExists) {
-        return {
-          ...{
-            userErrors: [
-              { message: 'BookSeries does not exist in the database' },
-            ],
-            bookSeries: null,
-          },
-        };
-      }
 
-      return {
-        userErrors: [
-          {
-            message: '',
-          },
-        ],
-        bookSeries: prisma.bookSeries.delete({
-          where: {
-            id,
-          },
-        }),
-      };
-    },
     updateBookSeries: async (
       _: any,
       { id, input }: BookSeriesUpdateArgs,

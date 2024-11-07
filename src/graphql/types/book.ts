@@ -1,7 +1,6 @@
 import { Book, Covers, Language, Prisma, Publisher } from '@prisma/client';
 import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
-import { DeletePayloadType } from '../utils/types';
 
 interface BooksQueryArgs {
   input?: {
@@ -61,7 +60,6 @@ export const book = gql`
   }
   type Mutation {
     addBook(input: addBookInput!): BookPayload!
-    deleteBook(id: ID!): DeletePayload!
     updateBook(input: updateBookInput!): BookPayload!
   }
   type Book implements Node {
@@ -381,43 +379,6 @@ export const bookResolvers = {
           },
         }),
       };
-    },
-    deleteBook: async (
-      _: any,
-      { id }: { id: string },
-      { prisma }: Context
-    ): Promise<DeletePayloadType> => {
-      try {
-        const bookExists = await prisma.book.findUnique({
-          where: {
-            id,
-          },
-        });
-
-        if (!bookExists) {
-          return {
-            userErrors: [{ message: 'Book does not exist in the database' }],
-            success: false,
-          };
-        }
-
-        await prisma.book.delete({
-          where: {
-            id,
-          },
-        });
-
-        return {
-          userErrors: [{ message: '' }],
-          success: true,
-        };
-      } catch (error) {
-        console.error('Error deleting book', error);
-        return {
-          userErrors: [{ message: `${error}` }],
-          success: false,
-        };
-      }
     },
     updateBook: async (
       _: any,

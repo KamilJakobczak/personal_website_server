@@ -3,6 +3,7 @@ import { Context } from '../../bookCollection/prismaClient';
 
 import { CustomCollection, Prisma } from '@prisma/client';
 import { assertSessionUser } from '../utils/typeGuards';
+import { DeletePayloadType } from './resolvers/deleteResolver';
 
 interface CustomCollectionPayloadType {
   userErrors: {
@@ -22,7 +23,7 @@ export const customCollection = gql`
 
   type Mutation {
     createCustomCollection(input: CreateCollectionInput!): CustomCollectionPayload!
-    deleteCustomCollection(id: ID!): CustomCollectionPayload!
+    deleteCustomCollection(id: ID!): DeletePayload!
     updateCustomCollection(): CustomCollectionPayload!
   }
 
@@ -117,32 +118,34 @@ export const customCollectionResolvers = {
       _: any,
       { id }: { id: string },
       { prisma, req }: Context
-    ): Promise<CustomCollectionPayloadType> => {
+    ): Promise<DeletePayloadType> => {
+      // Ensure the user is authenticated
       assertSessionUser(req);
       const { profileId } = req.session.user;
-      const customCollection = await prisma.customCollection.findUnique({
-        where: { id },
-      });
 
-      if (!customCollection) {
+      try {
+        const customCollection =
+          await prisma.customCollection.findUniqueOrThrow({
+            where: { id },
+          });
+        if (customCollection.profileID !== profileId) {
+          throw new Error('You are not authorized to edit this collection');
+        }
+        const deletedCollection = prisma.customCollection.delete({
+          where: { id },
+        });
+        console.log('Deleted custom collection:', deletedCollection);
         return {
-          userErrors: [{ message: "Collection doesn't exist" }],
-          customCollection: null,
+          userErrors: [{ message: '' }],
+          success: true,
+        };
+      } catch (error: any) {
+        console.error('Error deleting custom collection', error);
+        return {
+          userErrors: [{ message: `${error.message}` }],
+          success: false,
         };
       }
-      if (profileId !== customCollection.profileID) {
-        return {
-          userErrors: [
-            { message: 'You are not authorized to edit this collection' },
-          ],
-          customCollection: null,
-        };
-      }
-
-      return {
-        userErrors: [{ message: '' }],
-        customCollection: prisma.customCollection.delete({ where: { id } }),
-      };
     },
     updateCustomColletion: async (
       _: any,

@@ -16,7 +16,6 @@ export const translator = gql`
   }
   type Mutation {
     addTranslator(input: addTranslatorInput): TranslatorPayload!
-    deleteTranslator(id: ID!): TranslatorPayload!
     updateTranslator(id: ID!, input: updateTranslatorArgs!): TranslatorPayload!
   }
   input addTranslatorInput {
@@ -109,36 +108,6 @@ export const translatorResolvers = {
           data: {
             firstName,
             lastName,
-          },
-        }),
-      };
-    },
-    deleteTranslator: async (
-      _: any,
-      { id }: { id: string },
-      { prisma }: Context
-    ): Promise<TranslatorPayloadType> => {
-      const translatorExists = await prisma.translator.findUnique({
-        where: {
-          id,
-        },
-      });
-      if (!translatorExists) {
-        return {
-          ...{
-            userErrors: [
-              { message: 'Translator does not exist in the database' },
-            ],
-          },
-          translator: null,
-        };
-      }
-
-      return {
-        userErrors: [{ message: '' }],
-        translator: prisma.translator.delete({
-          where: {
-            id,
           },
         }),
       };

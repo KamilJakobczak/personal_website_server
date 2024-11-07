@@ -35,6 +35,10 @@ const Query = gql`
     userErrors: [userError!]!
     success: Boolean!
   }
+  type userError {
+    message: String!
+  }
+
   interface Node {
     id: ID!
   }
