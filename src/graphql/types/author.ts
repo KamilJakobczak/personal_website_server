@@ -135,21 +135,8 @@ export const authorResolvers = {
     },
   },
   Mutation: {
-    addAuthor: async (
-      _: any,
-      { input }: AuthorArgs,
-      { prisma, req }: Context
-    ): Promise<AuthorPayloadType> => {
-      const {
-        firstName,
-        secondName,
-        thirdName,
-        lastName,
-        nationality,
-        birthYear,
-        deathYear,
-        bioPages,
-      } = input;
+    addAuthor: async (_: any, { input }: AuthorArgs, { prisma, req }: Context): Promise<AuthorPayloadType> => {
+      const { firstName, secondName, thirdName, lastName, nationality, birthYear, deathYear, bioPages } = input;
       const authorExists = await prisma.author.findFirst({
         where: {
           firstName: {
@@ -197,22 +184,8 @@ export const authorResolvers = {
         };
       }
     },
-    updateAuthor: async (
-      _: any,
-      { input }: AuthorUpdateArgs,
-      { prisma }: Context
-    ): Promise<AuthorPayloadType> => {
-      const {
-        id,
-        firstName,
-        secondName,
-        thirdName,
-        lastName,
-        nationality,
-        birthYear,
-        deathYear,
-        bioPages,
-      } = input;
+    updateAuthor: async (_: any, { input }: AuthorUpdateArgs, { prisma }: Context): Promise<AuthorPayloadType> => {
+      const { id, firstName, secondName, thirdName, lastName, nationality, birthYear, deathYear, bioPages } = input;
 
       const author = await prisma.author.findUnique({
         where: {

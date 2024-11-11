@@ -19,6 +19,22 @@ declare module 'express-session' {
     };
   }
 }
+
+declare module 'epub' {
+  export interface Metadata {
+    creator: string;
+    creatorFileAs: string;
+    title: string;
+    language: string;
+    subject: string;
+    date: string;
+    description: string;
+    cover: any;
+    // added by me
+    publisher: string;
+    ISBN: string;
+  }
+}
 // declare module 'express-serve-static-core' {
 //   interface Request {
 //     loggedUser?: {
@@ -60,9 +76,7 @@ if (cluster.isPrimary) {
     startApolloServer(app, httpServer)
       .then(() => {
         httpServer.listen(port, host, () => {
-          console.log(
-            `Worker ${process.pid} started and listening at http://${host}:${port}`
-          );
+          console.log(`Worker ${process.pid} started and listening at http://${host}:${port}`);
         });
       })
       .catch(error => {

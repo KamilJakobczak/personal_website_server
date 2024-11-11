@@ -8,7 +8,7 @@ interface BookSeriesArgs {
     booksInBookSeries: {
       tome: string;
       bookId: string;
-    };
+    }[];
   };
 }
 interface BookSeriesUpdateArgs {
@@ -121,6 +121,18 @@ export const bookSeriesResolvers = {
         data: {
           name: name,
           booksInBookSeries,
+        },
+      });
+      await prisma.book.updateMany({
+        where: {
+          id: {
+            in: booksInBookSeries.map(book => book.bookId),
+          },
+        },
+        data: {
+          bookSeriesIDs: {
+            push: bookSeries.id,
+          },
         },
       });
 

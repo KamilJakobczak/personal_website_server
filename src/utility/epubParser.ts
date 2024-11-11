@@ -30,11 +30,7 @@ export interface epubParserData {
 
 export const epubParser = async (filepath: string, fileName: string) => {
   return new Promise<epubParserData>(function (resolve, reject) {
-    const epub = new EPub(
-      filepath,
-      path.join(__dirname, '..', '..', 'files', 'temp', 'covers'),
-      '../../files/temp'
-    );
+    const epub = new EPub(filepath, path.join(__dirname, '..', '..', 'files', 'temp', 'covers'), '../../files/temp');
     epub.on('end', async function () {
       const localId = fileName;
 
@@ -75,16 +71,7 @@ export const epubParser = async (filepath: string, fileName: string) => {
       if (cover === undefined) {
         console.log(`${title} has no cover`);
       } else {
-        const coverPath = path.join(
-          __dirname,
-          '..',
-          '..',
-          'files',
-          'images',
-          'temp',
-          'covers',
-          `${localId}.jpg`
-        );
+        const coverPath = path.join(__dirname, '..', '..', 'files', 'images', 'temp', 'covers', `${localId}.jpg`);
         const isCover = extractImage(epub, cover, coverPath);
         if (isCover !== false) {
           parsedData = {
@@ -105,11 +92,7 @@ export const epubParser = async (filepath: string, fileName: string) => {
 
 // FUNCTIONS
 
-function extractImage(
-  epub: EPub,
-  cover: string,
-  coverPath: string
-): void | boolean {
+function extractImage(epub: EPub, cover: string, coverPath: string): void | boolean {
   epub.getImage(cover, async function (error, img, mimeType) {
     try {
       fs.writeFileSync(coverPath, img);

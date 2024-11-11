@@ -5,10 +5,7 @@ dotenv.config();
 
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 
-const envFile =
-  process.env.NODE_ENV === 'production'
-    ? '.env.production'
-    : '.env.development';
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
 
 dotenv.config({ path: path.resolve(__dirname, envFile) });
 
@@ -23,6 +20,7 @@ interface ConfigInterface {
   host: string | undefined;
   backPort: string | undefined;
   frontPort: string | undefined;
+  jwt: string;
 }
 const config: ConfigInterface = {
   database: process.env.DATABASE_URL,
@@ -35,6 +33,7 @@ const config: ConfigInterface = {
   host: process.env.HOST,
   backPort: process.env.BACK_PORT,
   frontPort: process.env.FRONT_PORT,
+  jwt: process.env.JWT_SIGNATURE || '',
 };
 
 export default config;
