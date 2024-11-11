@@ -84,21 +84,18 @@ export const bookSeriesResolvers = {
   },
   BookSeries: {
     books: async ({ id }: { id: string }, __: any, { prisma }: Context) => {
-      return prisma.book.findMany({
+      const books = await prisma.book.findMany({
         where: {
           bookSeriesIDs: {
             has: id,
           },
         },
       });
+      return books;
     },
   },
   Mutation: {
-    addBookSeries: async (
-      _: any,
-      { input }: BookSeriesArgs,
-      { prisma }: Context
-    ): Promise<BookSeriesPayloadType> => {
+    addBookSeries: async (_: any, { input }: BookSeriesArgs, { prisma }: Context): Promise<BookSeriesPayloadType> => {
       const { name, booksInBookSeries } = input;
       if (name === '') {
         return {
@@ -116,21 +113,20 @@ export const bookSeriesResolvers = {
       });
       if (doesExist) {
         return {
-          userErrors: [
-            { message: 'BookSeries already exists in the database' },
-          ],
+          userErrors: [{ message: 'BookSeries already exists in the database' }],
           bookSeries: null,
         };
       }
-      console.log(booksInBookSeries);
+      const bookSeries = await prisma.bookSeries.create({
+        data: {
+          name: name,
+          booksInBookSeries,
+        },
+      });
+
       return {
         userErrors: [{ message: '' }],
-        bookSeries: prisma.bookSeries.create({
-          data: {
-            name: name,
-            booksInBookSeries,
-          },
-        }),
+        bookSeries,
       };
     },
 
@@ -149,9 +145,7 @@ export const bookSeriesResolvers = {
       });
       if (!bookSeriesExists) {
         return {
-          userErrors: [
-            { message: 'book series of specified id does not exist' },
-          ],
+          userErrors: [{ message: 'book series of specified id does not exist' }],
           bookSeries: null,
         };
       }

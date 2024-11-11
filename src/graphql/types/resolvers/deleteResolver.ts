@@ -7,15 +7,7 @@ export const deleteSingleRecord = gql`
 }
 `;
 // Define the union type for PrismaModel
-export type PrismaModel =
-  | 'author'
-  | 'book'
-  | 'genre'
-  | 'publisher'
-  | 'profile'
-  | 'translator'
-  | 'user'
-  | 'bookSeries';
+export type PrismaModel = 'author' | 'book' | 'genre' | 'publisher' | 'profile' | 'translator' | 'user' | 'bookSeries';
 
 // Define the interface for the payload type
 export interface DeletePayloadType {
@@ -67,10 +59,7 @@ const deleteRecord = async (model: PrismaModel, id: string) => {
 
 export const deleteResolver = {
   Mutation: {
-    deleteRecord: async (
-      _: any,
-      { model, id }: { model: PrismaModel; id: string }
-    ): Promise<DeletePayloadType> => {
+    deleteRecord: async (_: any, { model, id }: { model: PrismaModel; id: string }): Promise<DeletePayloadType> => {
       try {
         const deletedRecord = await deleteRecord(model, id);
         return deletedRecord;
