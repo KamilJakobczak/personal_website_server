@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { IMiddlewareFunction } from 'graphql-middleware';
 import { Context, prisma } from '../bookCollection/prismaClient';
-import { assertSessionUser } from './utils/typeGuards';
 
 const isLoggedIn = async (req: Request, res: Response, next: NextFunction) => {
   if (!req.session.user) {
@@ -17,27 +16,19 @@ const isLoggedIn = async (req: Request, res: Response, next: NextFunction) => {
   if (!dbUser) {
     return res.status(404).json({ message: 'User not found' });
   }
-  // assertSessionUser(req);
+
   next();
 };
 
 const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
   // assertSessionUser(req);
   if (req.session.user?.role !== 'ADMIN') {
-    return res
-      .status(403)
-      .json({ message: 'Access denied, admin rights required' });
+    return res.status(403).json({ message: 'Access denied, admin rights required' });
   }
   next();
 };
 
-export const combinedMiddleware: IMiddlewareFunction = async (
-  resolve,
-  parent,
-  args,
-  context: Context,
-  info
-) => {
+export const combinedMiddleware: IMiddlewareFunction = async (resolve, parent, args, context: Context, info) => {
   await new Promise<void>((resolve, reject) => {
     // Check if the user is logged in
     isLoggedIn(context.req, context.res, (err: any) => {
@@ -53,13 +44,7 @@ export const combinedMiddleware: IMiddlewareFunction = async (
   return resolve(parent, args, context, info);
 };
 
-export const isLoggedInMiddleware: IMiddlewareFunction = async (
-  resolve,
-  parent,
-  args,
-  context: Context,
-  info
-) => {
+export const isLoggedInMiddleware: IMiddlewareFunction = async (resolve, parent, args, context: Context, info) => {
   await new Promise<void>((resolve, reject) => {
     isLoggedIn(context.req, context.res, (err: any) => {
       if (err) return reject(err);

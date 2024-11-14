@@ -37,6 +37,13 @@ app.use(
     credentials: true,
   })
 );
+app.get('/*', async (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'), function (err) {
+    if (err) {
+      res.status(500).send(err);
+    }
+  });
+});
 // Routes
 app.use('/api/images', imagesRouter);
 app.use('/api/graphql', bookSessions, collectionRouter);

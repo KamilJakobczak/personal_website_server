@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server';
+import gql from 'graphql-tag';
 import { prisma } from '../../../bookCollection/prismaClient';
 
 export const deleteSingleRecord = gql`

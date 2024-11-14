@@ -1,4 +1,4 @@
-import { Prisma, prisma, Profile, UserBookDetails } from '@prisma/client';
+import { Prisma, Profile, UserBookDetails } from '@prisma/client';
 import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
 import { assertSessionUser } from '../utils/typeGuards';
@@ -65,19 +65,12 @@ interface ProfilePayloadType {
 interface AddBookToShelfPayloadType {
   userErrors: { message: string }[];
   profile: Profile | Prisma.Prisma__ProfileClient<Profile> | null;
-  bookDetails:
-    | UserBookDetails
-    | Prisma.Prisma__UserBookDetailsClient<UserBookDetails>
-    | null;
+  bookDetails: UserBookDetails | Prisma.Prisma__UserBookDetailsClient<UserBookDetails> | null;
 }
 
 export const profileResolvers = {
   Query: {
-    profile: async (
-      _: any,
-      { id }: { id: string },
-      { prisma, req }: Context
-    ) => {
+    profile: async (_: any, { id }: { id: string }, { prisma, req }: Context) => {
       if (req.session && req.session.user) {
         return prisma.profile.findUnique({
           where: {
@@ -196,11 +189,7 @@ export const profileResolvers = {
         }),
       };
     },
-    deleteProfile: async (
-      _: any,
-      id: string,
-      { prisma, req }: Context
-    ): Promise<DeletePayloadType> => {
+    deleteProfile: async (_: any, id: string, { prisma, req }: Context): Promise<DeletePayloadType> => {
       // Ensure the user is authenticated
       assertSessionUser(req);
       const { profileId } = req.session.user;

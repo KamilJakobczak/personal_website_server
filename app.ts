@@ -2,11 +2,11 @@
 import http from 'http';
 import cluster from 'cluster';
 import os from 'os';
-import session from 'express-session';
+
 // App Modules
-import { app } from './express';
-import config from '../config';
-import { startApolloServer } from './bookCollection/apolloServer';
+import { app } from './src/express';
+import config from './config';
+import { startApolloServer } from './src/bookCollection/apolloServer';
 import { Role, User } from '@prisma/client';
 
 // Session type extension. Don't know why but it works here and not where it's supposed to
@@ -35,16 +35,6 @@ declare module 'epub' {
     ISBN: string;
   }
 }
-// declare module 'express-serve-static-core' {
-//   interface Request {
-//     loggedUser?: {
-//       id: string;
-//       name: string | null;
-//       email: string;
-//       role: Role;
-//     };
-//   }
-// }
 
 const numCPUs = os.cpus().length;
 const { host, backPort } = config;

@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server';
+import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
 
 export const searchableUnion = gql`
@@ -24,11 +24,7 @@ export const searchableUnionResolvers = {
     },
   },
   Query: {
-    search: async (
-      _: any,
-      { contains, type }: { contains: string; type: string },
-      { prisma }: Context
-    ) => {
+    search: async (_: any, { contains, type }: { contains: string; type: string }, { prisma }: Context) => {
       switch (type) {
         case 'Book':
           return prisma.book.findMany({

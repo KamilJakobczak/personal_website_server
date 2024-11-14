@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server';
+import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
 
 import { CustomCollection, Prisma } from '@prisma/client';
@@ -9,10 +9,7 @@ interface CustomCollectionPayloadType {
   userErrors: {
     message: string;
   }[];
-  customCollection:
-    | CustomCollection
-    | Prisma.Prisma__CustomCollectionClient<CustomCollection>
-    | null;
+  customCollection: CustomCollection | Prisma.Prisma__CustomCollectionClient<CustomCollection> | null;
 }
 
 export const customCollection = gql`
@@ -57,11 +54,7 @@ export const customCollectionResolvers = {
         },
       });
     },
-    customCollections: (
-      _: any,
-      { profileId }: { profileId: string },
-      { prisma }: Context
-    ) => {
+    customCollections: (_: any, { profileId }: { profileId: string }, { prisma }: Context) => {
       return prisma.customCollection.findMany({
         where: {
           profileID: profileId,
@@ -124,10 +117,9 @@ export const customCollectionResolvers = {
       const { profileId } = req.session.user;
 
       try {
-        const customCollection =
-          await prisma.customCollection.findUniqueOrThrow({
-            where: { id },
-          });
+        const customCollection = await prisma.customCollection.findUniqueOrThrow({
+          where: { id },
+        });
         if (customCollection.profileID !== profileId) {
           throw new Error('You are not authorized to edit this collection');
         }
@@ -166,9 +158,7 @@ export const customCollectionResolvers = {
       }
       if (profileId !== customCollection.profileID) {
         return {
-          userErrors: [
-            { message: 'You are not authorized to edit this collection' },
-          ],
+          userErrors: [{ message: 'You are not authorized to edit this collection' }],
           customCollection: null,
         };
       }
