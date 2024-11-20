@@ -1,4 +1,4 @@
-import { Book, Covers, Language, Prisma, Publisher } from '@prisma/client';
+import { Book, Covers, Language, Prisma, Publisher, Translator } from '@prisma/client';
 import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
 
@@ -66,7 +66,7 @@ export const book = gql`
     id: ID!
     title: String!
     titleEnglish: String
-    titleOriginal: String!
+    titleOriginal: String
     language: Language
     authors: [Author]!
     bookSeries: [BookSeries]
@@ -91,10 +91,6 @@ export const book = gql`
     book: Book
   }
   
-  type userError {
-    message: String!
-  }
-
   enum Language {
     English
     Polish
@@ -203,9 +199,7 @@ export const bookResolvers = {
             title: 'asc',
           },
         });
-        const sortedBooks = books.sort((a, b) =>
-          a.title.toLowerCase().localeCompare(b.title.toLowerCase())
-        );
+        const sortedBooks = books.sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
         return sortedBooks;
       }
     },
@@ -230,11 +224,7 @@ export const bookResolvers = {
       });
       return authorsReturn;
     },
-    publisher: async (
-      { id }: { id: string },
-      __: any,
-      { prisma }: Context
-    ): Promise<Publisher | null> => {
+    publisher: async ({ id }: { id: string }, __: any, { prisma }: Context): Promise<Publisher | null> => {
       const book = await prisma.book.findUnique({
         where: {
           id,
@@ -247,35 +237,29 @@ export const bookResolvers = {
         },
       });
     },
-    translators: async (
-      { id }: { id: string },
-      __: any,
-      { prisma }: Context
-    ) => {
+    translators: async ({ id }: { id: string }, __: any, { prisma }: Context) => {
       const book = await prisma.book.findUnique({
         where: {
           id,
         },
       });
+
       const translators = book?.translatorIDs;
+
       let translatorsReturn: object[] = [];
       translators?.map(translator => {
         translatorsReturn.push(
-          prisma.author.findUnique({
+          prisma.translator.findUnique({
             where: {
               id: translator,
             },
           })
         );
       });
-
+      console.log('TRANSLATOR:', translatorsReturn);
       return translatorsReturn;
     },
-    bookGenres: async (
-      { id }: { id: string },
-      __: any,
-      { prisma }: Context
-    ) => {
+    bookGenres: async ({ id }: { id: string }, __: any, { prisma }: Context) => {
       const book = await prisma.book.findUnique({
         where: {
           id,
@@ -297,11 +281,7 @@ export const bookResolvers = {
     },
   },
   Mutation: {
-    addBook: async (
-      _: any,
-      { input }: BookArgs,
-      { prisma, req }: Context
-    ): Promise<BookPayloadType> => {
+    addBook: async (_: any, { input }: BookArgs, { prisma, req }: Context): Promise<BookPayloadType> => {
       const {
         authors,
         bookGenres,
@@ -349,8 +329,7 @@ export const bookResolvers = {
         return {
           userErrors: [
             {
-              message:
-                'Looks like the book you are trying to add exists in the database',
+              message: 'Looks like the book you are trying to add exists in the database',
             },
           ],
           book: bookExists,
@@ -380,11 +359,8 @@ export const bookResolvers = {
         }),
       };
     },
-    updateBook: async (
-      _: any,
-      { input }: BookUpdateArgs,
-      { prisma }: Context
-    ): Promise<BookPayloadType> => {
+    updateBook: async (_: any, { input }: BookUpdateArgs, { prisma }: Context): Promise<BookPayloadType> => {
+      console.log('updating BOOK MUTATION');
       const { id } = input;
 
       const bookExists = await prisma.book.findUnique({
@@ -414,7 +390,7 @@ export const bookResolvers = {
         isbn,
         firstEdition,
       } = input;
-
+      console.log(translators);
       let payloadToUpdate = {
         title,
         titleEnglish,

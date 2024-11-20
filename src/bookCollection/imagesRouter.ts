@@ -17,7 +17,7 @@ imagesRouter.use((req, res, next) => {
     console.log('Time: ', Date.now());
     res.header(
       'Access-Control-Allow-Origin',
-      `https://${config.host}:${config.frontPort}`
+      `https://${config.host}${config.frontPort ? `:${config.frontPort}` : null}`
     );
     res.header('Access-Control-Allow-Headers', 'Content-Type');
     next();
@@ -48,11 +48,8 @@ imagesRouter.get('/covers/:bookId/:size', async (req, res) => {
   const mediumExists = fs.existsSync(mediumPath);
   const smallExists = fs.existsSync(smallPath);
   // Files' height
-  const originalHeight = originalExists
-    ? (await sharp(originalPath).metadata()).height
-    : null;
-  const mediumHeight =
-    mediumExists && (await sharp(mediumPath).metadata()).height;
+  const originalHeight = originalExists ? (await sharp(originalPath).metadata()).height : null;
+  const mediumHeight = mediumExists && (await sharp(mediumPath).metadata()).height;
   const smallHeight = smallExists && (await sharp(smallPath).metadata()).height;
 
   // const bigHeight = bigExists && (await sharp(bigPath).metadata()).height;
@@ -108,36 +105,30 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Post new cover
-imagesRouter.post(
-  '/uploaded/covers',
-  upload.single('file'),
-  async (req, res) => {
-    const { id } = req.body;
-    const cover = req.file;
-    const coverDir = path.join(imagesDir, 'covers', id);
+imagesRouter.post('/uploaded/covers', upload.single('file'), async (req, res) => {
+  const { id } = req.body;
+  const cover = req.file;
+  const coverDir = path.join(imagesDir, 'covers', id);
 
-    if (!cover) {
-      return res.status(400).send('No file uploaded');
-    }
-
-    try {
-      if (!fs.existsSync(coverDir)) {
-        fs.mkdirSync(coverDir);
-      }
-
-      const coverPath = path.join(coverDir, 'original.jpg');
-      await sharp(cover.path).toFile(coverPath);
-      await coverResize(coverPath);
-
-      res
-        .status(200)
-        .send('cover directory created along with different sizes');
-    } catch (error) {
-      console.error('Error processing the cover:', error);
-      res.status(500).send('Internal Server Error');
-    }
+  if (!cover) {
+    return res.status(400).send('No file uploaded');
   }
-);
+
+  try {
+    if (!fs.existsSync(coverDir)) {
+      fs.mkdirSync(coverDir);
+    }
+
+    const coverPath = path.join(coverDir, 'original.jpg');
+    await sharp(cover.path).toFile(coverPath);
+    await coverResize(coverPath);
+
+    res.status(200).send('cover directory created along with different sizes');
+  } catch (error) {
+    console.error('Error processing the cover:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 // Transform temp cover into permanent file
 imagesRouter.post('/uploaded/covers-epub', async (req, res) => {
   const { bookId, localId } = req.body;

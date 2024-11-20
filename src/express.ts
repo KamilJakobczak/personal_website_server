@@ -32,18 +32,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // CORS configuration
 app.use(
   cors({
-    origin: `https://${config.host}:${config.frontPort}`,
+    origin: `https://${config.host}${config.frontPort ? ':' + config.frontPort : null}`,
     methods: ['POST', 'GET', 'PUT', 'OPTIONS', 'HEAD'],
     credentials: true,
   })
 );
-app.get('/*', async (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/index.html'), function (err) {
-    if (err) {
-      res.status(500).send(err);
-    }
-  });
-});
+
 // Routes
 app.use('/api/images', imagesRouter);
 app.use('/api/graphql', bookSessions, collectionRouter);
@@ -55,3 +49,10 @@ app.use('/api/projects/coding', codingSessions, codingProjectRouter);
 // app.get('*', (req, res) => {
 //   res.sendFile(path.join(__dirname, '..', 'client', 'build', 'index.html'));
 // });
+app.get('/*', async (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'), function (err) {
+    if (err) {
+      res.status(500).send(err);
+    }
+  });
+});
