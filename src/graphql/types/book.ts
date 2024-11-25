@@ -10,6 +10,9 @@ interface BooksQueryArgs {
     };
   };
 }
+interface BooksFeedArgs {
+  input: { offset: number; limit: number };
+}
 
 interface BookArgs {
   input: {
@@ -57,6 +60,7 @@ export const book = gql`
   extend type Query {
     book(id: ID!): Book
     books(input: BooksInput): [Book]!
+    booksFeed(input: BooksFeedInput!): BooksFeedPayload!
   }
   type Mutation {
     addBook(input: addBookInput!): BookPayload!
@@ -90,6 +94,10 @@ export const book = gql`
     userErrors: [userError!]!
     book: Book
   }
+  type BooksFeedPayload {
+    books: [Book!]!
+    totalCount: Int!
+  }
   
   enum Language {
     English
@@ -99,7 +107,10 @@ export const book = gql`
   input BooksInput {
     filter: BooksFilter
   }
-
+  input BooksFeedInput {
+    offset: Int
+    limit: Int
+  }
   input BooksFilter {
     genres: [String]!
     publishers: [String]!
@@ -173,9 +184,7 @@ export const bookResolvers = {
             },
           });
           return books;
-        }
-
-        if (genres && publishers) {
+        } else if (genres && publishers) {
           const books = await prisma.book.findMany({
             where: {
               genreIDs: {
@@ -202,6 +211,16 @@ export const bookResolvers = {
         const sortedBooks = books.sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
         return sortedBooks;
       }
+    },
+    booksFeed: async (_: any, { input }: BooksFeedArgs, { prisma }: Context) => {
+      const { offset, limit } = input;
+      const books = await prisma.book.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: { title: 'asc' },
+      });
+      const totalCount = await prisma.book.count();
+      return { books: books, totalCount: totalCount };
     },
   },
   Book: {

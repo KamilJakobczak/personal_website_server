@@ -30,12 +30,6 @@ type Covers {
   small    String
 }
 
-// type CoverType {
-//   paperback Boolean
-//   hardcover Boolean
-//   ebook     Boolean
-// }
-
 type Edition {
   editionNumber Int?
   editionYear   Int?
@@ -45,12 +39,6 @@ type BioPages {
   wiki         String?
   goodreads    String?
   lubimyczytac String?
-}
-type PurchasedBookInfo {
-  coverType   CoverType
-  edition     Edition?
-  buyPrice    Int?
-  currency    Currency?
 }
 
 enum CoverType {
@@ -72,15 +60,10 @@ enum Language {
 enum Status {
   READ
   UNREAD
-  WANTEDTOBUY
   WANTEDTOREAD
 }
 
-enum Currency {
-  PLN
-  EUR
-  USD
-}
+
 
 model Author {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -110,6 +93,7 @@ model Book {
   covers               Covers?
   isbn                 String             @unique
   firstEdition         Int
+  coverType            CoverType?
   authorIDs            String[]           @db.ObjectId
   author               Author[]           @relation(fields: [authorIDs], references: [id])
   bookSeriesIDs        String[]           @db.ObjectId
@@ -205,11 +189,6 @@ model UserBookDetails {
   status    Status?
   whenRead  Int?
   rating    Int?
-  purchasedBookInfo   PurchasedBookInfo[]
-  
- 
-
-
 }
 
 model CustomCollection {
