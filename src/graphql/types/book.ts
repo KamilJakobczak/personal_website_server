@@ -1,6 +1,7 @@
 import { Book, Covers, Language, Prisma, Publisher, Translator } from '@prisma/client';
 import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
+import { FeedArgs } from '../interfaces';
 
 interface BooksQueryArgs {
   input?: {
@@ -9,9 +10,6 @@ interface BooksQueryArgs {
       publishers: string[];
     };
   };
-}
-interface BooksFeedArgs {
-  input: { offset: number; limit: number };
 }
 
 interface BookArgs {
@@ -60,7 +58,7 @@ export const book = gql`
   extend type Query {
     book(id: ID!): Book
     books(input: BooksInput): [Book]!
-    booksFeed(input: BooksFeedInput!): BooksFeedPayload!
+    booksFeed(input: FeedInput!): BooksFeedPayload!
   }
   type Mutation {
     addBook(input: addBookInput!): BookPayload!
@@ -107,10 +105,7 @@ export const book = gql`
   input BooksInput {
     filter: BooksFilter
   }
-  input BooksFeedInput {
-    offset: Int
-    limit: Int
-  }
+  
   input BooksFilter {
     genres: [String]!
     publishers: [String]!
@@ -212,7 +207,7 @@ export const bookResolvers = {
         return sortedBooks;
       }
     },
-    booksFeed: async (_: any, { input }: BooksFeedArgs, { prisma }: Context) => {
+    booksFeed: async (_: any, { input }: FeedArgs, { prisma }: Context) => {
       const { offset, limit } = input;
       const books = await prisma.book.findMany({
         skip: offset,

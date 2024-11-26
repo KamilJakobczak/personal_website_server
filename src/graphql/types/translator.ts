@@ -1,23 +1,27 @@
 import { Prisma, Translator } from '@prisma/client';
 import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
+import { FeedArgs } from '../interfaces';
 
 export const translator = gql`
-  extend type Query {
-    translator(id: ID!): Translator
-    translators: [Translator!]!
-  }
-  type Translator implements Node {
+ type Translator implements Node {
     id: ID!
     firstName: String!
     lastName: String!
-
     books: [Book]!
   }
+
+  extend type Query {
+    translator(id: ID!): Translator
+    translators: [Translator!]!
+    translatorsFeed(input: FeedInput!): TranslatorsFeedPayload!
+  }
+
   type Mutation {
     addTranslator(input: addTranslatorInput): TranslatorPayload!
     updateTranslator(id: ID!, input: updateTranslatorArgs!): TranslatorPayload!
   }
+ 
   input addTranslatorInput {
     firstName: String!
     lastName: String!
@@ -29,6 +33,10 @@ export const translator = gql`
   type TranslatorPayload {
     userErrors: [userError!]!
     translator: Translator
+  }
+  type TranslatorsFeedPayload {
+    translators: [Translator!]!
+    totalCount: Int!
   }
 `;
 interface BooksParentType {
@@ -60,6 +68,17 @@ export const translatorResolvers = {
     translators: async (_: any, __: any, { prisma }: Context) => {
       return prisma.translator.findMany();
     },
+    translatorsFeed: async (_: any, { input }: FeedArgs, { prisma }: Context) => {
+      const { offset, limit } = input;
+      const translators = await prisma.translator.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: { lastName: 'asc' },
+      });
+
+      const totalCount = await prisma.translator.count();
+      return { translators, totalCount };
+    },
   },
   Translator: {
     books: async ({ id }: BooksParentType, __: any, { prisma }: Context) => {
@@ -73,11 +92,7 @@ export const translatorResolvers = {
     },
   },
   Mutation: {
-    addTranslator: async (
-      _: any,
-      { input }: TranslatorArgs,
-      { prisma }: Context
-    ): Promise<TranslatorPayloadType> => {
+    addTranslator: async (_: any, { input }: TranslatorArgs, { prisma }: Context): Promise<TranslatorPayloadType> => {
       const { firstName, lastName } = input;
 
       const doesExist = await prisma.translator.findFirst({
@@ -126,9 +141,7 @@ export const translatorResolvers = {
       if (!translatorExists) {
         return {
           ...{
-            userErrors: [
-              { message: 'Translator does not exist in the database' },
-            ],
+            userErrors: [{ message: 'Translator does not exist in the database' }],
           },
           translator: null,
         };

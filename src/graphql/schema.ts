@@ -25,10 +25,7 @@ import {
   userResolvers,
   userBookDetailsResolvers,
 } from './types';
-import {
-  deleteResolver,
-  deleteSingleRecord,
-} from './types/resolvers/deleteResolver';
+import { deleteResolver, deleteSingleRecord } from './types/resolvers/deleteResolver';
 
 const Query = gql`
   type Query {
@@ -40,6 +37,10 @@ const Query = gql`
   }
   type userError {
     message: String!
+  }
+  input FeedInput {
+    offset: Int
+    limit: Int
   }
 
   interface Node {

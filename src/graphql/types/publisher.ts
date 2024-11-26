@@ -1,6 +1,7 @@
 import { Prisma, Publisher, Address } from '@prisma/client';
 import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
+import { FeedArgs } from '../interfaces';
 
 interface BooksParentType {
   id: string;
@@ -43,6 +44,7 @@ export const publisher = gql`
   extend type Query {
     publisher(id: ID!): Publisher
     publishers: [Publisher!]!
+    publishersFeed(input: FeedInput!): PublishersFeedPayload!
   }
   type Mutation {
     addPublisher(input: addPublisherInput): PublisherPayload!
@@ -58,6 +60,10 @@ export const publisher = gql`
   type PublisherPayload {
     userErrors: [userError!]!
     publisher: Publisher
+  }
+  type PublishersFeedPayload{
+    publishers: [Publisher!]!
+    totalCount: Int!
   }
   type Address {
     country: String
@@ -104,6 +110,16 @@ export const publisherResolvers = {
       });
       return result;
     },
+    publishersFeed: async (_: any, { input }: FeedArgs, { prisma }: Context) => {
+      const { offset, limit } = input;
+      const publishers = await prisma.publisher.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: { name: 'asc' },
+      });
+      const totalCount = await prisma.publisher.count();
+      return { publishers, totalCount };
+    },
   },
   Publisher: {
     books: ({ id }: BooksParentType, __: any, { prisma }: Context) => {
@@ -115,11 +131,7 @@ export const publisherResolvers = {
     },
   },
   Mutation: {
-    addPublisher: async (
-      _: any,
-      { input }: PublisherArgs,
-      { prisma }: Context
-    ): Promise<PublisherPayloadType> => {
+    addPublisher: async (_: any, { input }: PublisherArgs, { prisma }: Context): Promise<PublisherPayloadType> => {
       const { name, address, website } = input;
       const { country, zipCode, city, street, buildingNr, placeNr } = address;
 
@@ -158,11 +170,7 @@ export const publisherResolvers = {
       };
     },
 
-    updatePublisher: async (
-      _: any,
-      { input }: PublisherUpdateArgs,
-      { prisma }: Context
-    ) => {
+    updatePublisher: async (_: any, { input }: PublisherUpdateArgs, { prisma }: Context) => {
       const { id } = input;
       const publisherExists = await prisma.publisher.findUnique({
         where: {
@@ -172,16 +180,13 @@ export const publisherResolvers = {
       if (!publisherExists) {
         return {
           ...{
-            userErrors: [
-              { message: 'Publisher does not exist in the database' },
-            ],
+            userErrors: [{ message: 'Publisher does not exist in the database' }],
           },
           publisher: null,
         };
       }
       const { name, address, website } = input;
-      const { country, zipCode, city, street, buildingNr, placeNr } =
-        address || {};
+      const { country, zipCode, city, street, buildingNr, placeNr } = address || {};
 
       let publisherPayloadToUpdate = {
         name,

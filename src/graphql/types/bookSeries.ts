@@ -1,6 +1,7 @@
 import { BookSeries, Prisma } from '@prisma/client';
 import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
+import { FeedArgs } from '../interfaces';
 
 interface BookSeriesArgs {
   input: {
@@ -32,6 +33,7 @@ export const bookSeries = gql`
   extend type Query {
     singleBookSeries(id: ID!): BookSeries
     bookSeries: [BookSeries!]!
+    bookSeriesFeed(input: FeedInput!): BookSeriesFeedPayload!
   }
 
   type Mutation {
@@ -42,6 +44,10 @@ export const bookSeries = gql`
   type BookSeriesPayload {
     userErrors: [userError!]!
     bookSeries: BookSeries
+  }
+  type BookSeriesFeedPayload {
+    bookSeries: [BookSeries!]!
+    totalCount: Int!
   }
 
   input addBookSeriesInput {
@@ -80,6 +86,17 @@ export const bookSeriesResolvers = {
     },
     bookSeries: (_: any, __: any, { prisma }: Context) => {
       return prisma.bookSeries.findMany();
+    },
+    bookSeriesFeed: async (_: any, { input }: FeedArgs, { prisma }: Context) => {
+      const { offset, limit } = input;
+      const bookSeries = await prisma.bookSeries.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: { name: 'asc' },
+      });
+
+      const totalCount = await prisma.bookSeries.count();
+      return { bookSeries, totalCount };
     },
   },
   BookSeries: {

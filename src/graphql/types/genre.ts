@@ -1,6 +1,7 @@
 import { Genre, Prisma } from '@prisma/client';
 import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
+import { FeedArgs } from '../interfaces';
 
 interface BooksParentType {
   id: string;
@@ -23,6 +24,7 @@ export const genre = gql`
   extend type Query {
     genre(id: ID!): Genre
     genres: [Genre!]!
+    genresFeed(input: FeedInput!): GenresFeedPayload!
   }
 
   type Mutation {
@@ -40,7 +42,10 @@ export const genre = gql`
     userErrors: [userError!]!
     genre: Genre
   }
-
+  type GenresFeedPayload {
+    genres: [Genre!]!
+    totalCount: Int
+  }
   type Genre implements Node {
     id: ID!
     name: String!
@@ -66,6 +71,16 @@ export const genreResolvers = {
         ],
       });
     },
+    genresFeed: async (_: any, { input }: FeedArgs, { prisma }: Context) => {
+      const { offset, limit } = input;
+      const genres = await prisma.genre.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: { name: 'asc' },
+      });
+      const totalCount = await prisma.genre.count();
+      return { genres, totalCount };
+    },
   },
   Genre: {
     books: async ({ id }: BooksParentType, __: any, { prisma }: Context) => {
@@ -79,11 +94,7 @@ export const genreResolvers = {
     },
   },
   Mutation: {
-    addGenre: async (
-      _: any,
-      { input }: GenreArgs,
-      { prisma }: Context
-    ): Promise<GenrePayloadType> => {
+    addGenre: async (_: any, { input }: GenreArgs, { prisma }: Context): Promise<GenrePayloadType> => {
       const { name } = input;
       const doesExist = await prisma.genre.findFirst({
         where: {
@@ -109,11 +120,7 @@ export const genreResolvers = {
         }),
       };
     },
-    updateGenre: async (
-      _: any,
-      { id, input }: GenreUpdateArgs,
-      { prisma }: Context
-    ): Promise<GenrePayloadType> => {
+    updateGenre: async (_: any, { id, input }: GenreUpdateArgs, { prisma }: Context): Promise<GenrePayloadType> => {
       const { name } = input;
 
       const genreExists = prisma.genre.findUnique({

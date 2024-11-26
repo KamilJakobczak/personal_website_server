@@ -1,10 +1,12 @@
 import gql from 'graphql-tag';
 import { Author, BioPages, Prisma } from '@prisma/client';
 import { Context } from '../../bookCollection/prismaClient';
+import { FeedArgs } from '../interfaces';
 
 interface BooksParentType {
   id: string;
 }
+
 interface AuthorArgs {
   input: {
     firstName: string;
@@ -46,6 +48,7 @@ export const author = gql`
   extend type Query {
     author(id: ID!): Author
     authors: [Author!]!
+    authorsFeed(input: FeedInput!): AuthorsFeedPayload!
   }
 
   type Mutation {
@@ -73,6 +76,10 @@ export const author = gql`
   type AuthorPayload {
     userErrors: [userError!]!
     author: Author
+  }
+  type AuthorsFeedPayload {
+    authors: [Author!]!
+    totalCount: Int!
   }
  
   input bioPagesInput {
@@ -121,6 +128,17 @@ export const authorResolvers = {
       });
 
       return result;
+    },
+    authorsFeed: async (_: any, { input }: FeedArgs, { prisma }: Context) => {
+      const { offset, limit } = input;
+      const authors = await prisma.author.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: { lastName: 'asc' },
+      });
+
+      const totalCount = await prisma.author.count();
+      return { authors, totalCount };
     },
   },
   Author: {
