@@ -7,11 +7,10 @@ interface BooksParentType {
   id: string;
 }
 interface GenreArgs {
-  input: { name: string };
+  input: { name: string; namePolish: string };
 }
 interface GenreUpdateArgs {
-  id: string;
-  input: { name: string };
+  input: { id: string; name: string; namePolish: string };
 }
 interface GenrePayloadType {
   userErrors: {
@@ -29,14 +28,16 @@ export const genre = gql`
 
   type Mutation {
     addGenre(input: addGenreInput): GenrePayload!
-    updateGenre(id: ID!, input: updateGenreInput!): GenrePayload!
+    updateGenre(input: updateGenreInput!): GenrePayload!
   }
 
   input addGenreInput {
     name: String!
   }
   input updateGenreInput {
+    id: ID!
     name: String!
+    namePolish: String!
   }
   type GenrePayload {
     userErrors: [userError!]!
@@ -49,6 +50,7 @@ export const genre = gql`
   type Genre implements Node {
     id: ID!
     name: String!
+    namePolish: String
     books: [Book!]!
   }
 `;
@@ -95,7 +97,7 @@ export const genreResolvers = {
   },
   Mutation: {
     addGenre: async (_: any, { input }: GenreArgs, { prisma }: Context): Promise<GenrePayloadType> => {
-      const { name } = input;
+      const { name, namePolish } = input;
       const doesExist = await prisma.genre.findFirst({
         where: {
           name: {
@@ -116,12 +118,13 @@ export const genreResolvers = {
         genre: prisma.genre.create({
           data: {
             name: name.toLowerCase(),
+            namePolish: namePolish.toLowerCase(),
           },
         }),
       };
     },
-    updateGenre: async (_: any, { id, input }: GenreUpdateArgs, { prisma }: Context): Promise<GenrePayloadType> => {
-      const { name } = input;
+    updateGenre: async (_: any, { input }: GenreUpdateArgs, { prisma }: Context): Promise<GenrePayloadType> => {
+      const { id, name, namePolish } = input;
 
       const genreExists = prisma.genre.findUnique({
         where: {
@@ -135,7 +138,7 @@ export const genreResolvers = {
         };
       }
 
-      if (!name) {
+      if (!name && !namePolish) {
         return {
           userErrors: [{ message: 'must provide a new name' }],
           genre: null,
@@ -147,6 +150,7 @@ export const genreResolvers = {
         genre: prisma.genre.update({
           data: {
             name,
+            namePolish,
           },
           where: {
             id,

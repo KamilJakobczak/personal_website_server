@@ -215,7 +215,7 @@ export const bookResolvers = {
         orderBy: { title: 'asc' },
       });
       const totalCount = await prisma.book.count();
-      return { books: books, totalCount: totalCount };
+      return { books, totalCount };
     },
   },
   Book: {

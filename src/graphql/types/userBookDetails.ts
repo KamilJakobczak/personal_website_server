@@ -1,11 +1,4 @@
-import {
-  CoverType,
-  Currency,
-  Edition,
-  Prisma,
-  Status,
-  UserBookDetails,
-} from '@prisma/client';
+import { CoverType, Prisma, Status, UserBookDetails } from '@prisma/client';
 import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
 import { assertSessionUser } from '../utils/typeGuards';
@@ -113,14 +106,6 @@ interface UserBookDetailsArgs {
       status?: Status;
       whenRead?: number;
       rating?: number;
-      purchasedBookInfo?: [
-        {
-          coverType: CoverType;
-          edition?: Edition;
-          buyPrice?: number;
-          currency?: Currency;
-        }
-      ];
     };
   };
 }
@@ -131,24 +116,13 @@ interface UserBookDetailsUpdateArgs {
       status?: Status;
       whenRead?: number;
       rating?: number;
-      purchasedBookInfo?: [
-        {
-          coverType: CoverType;
-          edition?: Edition;
-          buyPrice?: number;
-          currency?: Currency;
-        }
-      ];
     };
   };
 }
 
 interface UserBookDetailsPayloadType {
   userErrors: { message: string }[];
-  userBookDetails:
-    | UserBookDetails
-    | Prisma.Prisma__UserBookDetailsClient<UserBookDetails>
-    | null;
+  userBookDetails: UserBookDetails | Prisma.Prisma__UserBookDetailsClient<UserBookDetails> | null;
 }
 
 export const userBookDetailsResolvers = {
@@ -231,7 +205,7 @@ export const userBookDetailsResolvers = {
         };
       }
 
-      const { status, rating, whenRead, purchasedBookInfo } = bookDetails;
+      const { status, rating, whenRead } = bookDetails;
 
       return {
         userErrors: [{ message: '' }],
@@ -242,7 +216,6 @@ export const userBookDetailsResolvers = {
             status,
             whenRead,
             rating,
-            purchasedBookInfo,
           },
         }),
       };
@@ -260,9 +233,7 @@ export const userBookDetailsResolvers = {
       });
       if (!userBookDetailsRecord) {
         return {
-          userErrors: [
-            { message: 'You are trying to update non exisiting record' },
-          ],
+          userErrors: [{ message: 'You are trying to update non exisiting record' }],
           userBookDetails: null,
         };
       }
@@ -274,13 +245,12 @@ export const userBookDetailsResolvers = {
         };
       }
       const { bookDetails } = input;
-      const { status, rating, whenRead, purchasedBookInfo } = bookDetails;
+      const { status, rating, whenRead } = bookDetails;
 
       let payloadToUpdate = {
         status,
         rating,
         whenRead,
-        purchasedBookInfo,
       };
 
       if (!status) {
@@ -291,9 +261,6 @@ export const userBookDetailsResolvers = {
       }
       if (!whenRead) {
         delete payloadToUpdate.whenRead;
-      }
-      if (!purchasedBookInfo) {
-        delete payloadToUpdate.purchasedBookInfo;
       }
 
       return {

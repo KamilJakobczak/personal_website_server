@@ -130,6 +130,7 @@ model Genre {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   name      String
+  namePolish String?
   booksIDs  String[] @db.ObjectId
   books     Book[]   @relation("Genres", fields: [booksIDs], references: [id])
 }

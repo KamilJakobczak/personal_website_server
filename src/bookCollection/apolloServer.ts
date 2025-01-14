@@ -15,9 +15,6 @@ export const startApolloServer = async (app: Express, httpServer: Server) => {
   try {
     const server = new ApolloServer<Context>({
       schema: schemaWithMiddleware,
-      // context: async ({ req, res }): Promise<Context> => {
-      //   return { prisma, req, res, user: req.session.user };
-      // },
       csrfPrevention: true,
       plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
       introspection: process.env.NODE_ENV !== 'production',
@@ -33,10 +30,6 @@ export const startApolloServer = async (app: Express, httpServer: Server) => {
         },
       })
     );
-    // server.applyMiddleware({
-    //   app,
-    //   path: config.graphqlAPI,
-    // });
 
     console.log(`Apollo server ready at http://${config.host}:${config.backPort}${config.graphqlAPI}`);
   } catch (error) {
