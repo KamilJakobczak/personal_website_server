@@ -11,6 +11,16 @@ interface BooksQueryArgs {
     };
   };
 }
+interface BooksFeedArgs {
+  input: {
+    limit: number;
+    offset: number;
+    filter?: {
+      genres: string[];
+      publishers: string[];
+    };
+  };
+}
 
 interface BookArgs {
   input: {
@@ -58,7 +68,7 @@ export const book = gql`
   extend type Query {
     book(id: ID!): Book
     books(input: BooksInput): [Book]!
-    booksFeed(input: FeedInput!): BooksFeedPayload!
+    booksFeed(input: BooksFeedInput!): BooksFeedPayload!
   }
   type Mutation {
     addBook(input: addBookInput!): BookPayload!
@@ -101,6 +111,11 @@ export const book = gql`
     English
     Polish
   }
+  input BooksFeedInput {
+    offset: Int
+    limit: Int
+    filter: BooksFilter
+    }
 
   input BooksInput {
     filter: BooksFilter
@@ -207,15 +222,73 @@ export const bookResolvers = {
         return sortedBooks;
       }
     },
-    booksFeed: async (_: any, { input }: FeedArgs, { prisma }: Context) => {
-      const { offset, limit } = input;
-      const books = await prisma.book.findMany({
-        skip: offset,
-        take: limit,
-        orderBy: { title: 'asc' },
-      });
-      const totalCount = await prisma.book.count();
-      return { books, totalCount };
+    booksFeed: async (_: any, { input }: BooksFeedArgs, { prisma }: Context) => {
+      const { offset, limit, filter } = input;
+      console.log(filter);
+
+      if (filter) {
+        const { genres, publishers } = filter;
+        if (genres && publishers.length === 0) {
+          const books = await prisma.book.findMany({
+            skip: offset,
+            take: limit,
+            orderBy: { title: 'asc' },
+            where: {
+              genreIDs: {
+                hasSome: genres,
+              },
+            },
+          });
+          const totalBooks = await prisma.book.count({ where: { genreIDs: { hasSome: genres } } });
+
+          return { books, totalCount: totalBooks };
+        } else if (genres.length === 0 && publishers) {
+          const books = await prisma.book.findMany({
+            skip: offset,
+            take: limit,
+            orderBy: { title: 'asc' },
+            where: {
+              publisherID: { in: publishers },
+            },
+          });
+          const totalBooks = await prisma.book.count({ where: { publisherID: { in: publishers } } });
+          return { books, totalCount: totalBooks };
+        } else if (genres && publishers) {
+          const books = await prisma.book.findMany({
+            skip: offset,
+            take: limit,
+            orderBy: { title: 'asc' },
+            where: {
+              genreIDs: {
+                hasSome: genres,
+              },
+              AND: {
+                publisherID: { in: publishers },
+              },
+            },
+          });
+          const totalBooks = await prisma.book.count({
+            where: {
+              genreIDs: {
+                hasSome: genres,
+              },
+              AND: {
+                publisherID: { in: publishers },
+              },
+            },
+          });
+          return { books, totalCount: totalBooks };
+        }
+      } else {
+        const totalCount = await prisma.book.count();
+        const books = await prisma.book.findMany({
+          skip: offset,
+          take: limit,
+          orderBy: { title: 'asc' },
+        });
+
+        return { books, totalCount };
+      }
     },
   },
   Book: {
