@@ -7,6 +7,6 @@ files
 .env.development
 .env.production
 Dockerfile
-
+production
 key.pem
 cert.pem

@@ -1,6 +1,7 @@
 import * as express from 'express';
 import fs from 'fs/promises';
 import path from 'path';
+import config from '../../config';
 
 interface Cell {
   id: string;
@@ -12,12 +13,15 @@ interface LocalApiError {
   code: string;
 }
 
-const sessionDir = path.join(__dirname, '..', '..', 'sessions');
+const sessionDir = path.join(__dirname, '..', '..', 'files', 'coding_sessions');
 export const codingProjectRouter = express.Router();
 
 codingProjectRouter.all('/', async (req, res, next) => {
   console.log('Time: ', Date.now());
-  res.header('Access-Control-Allow-Origin', 'https://localhost:3000');
+  res.header(
+    'Access-Control-Allow-Origin',
+    `https://${config.host}${config.frontPort ? `:${config.frontPort}` : null}`
+  );
   next();
 });
 
@@ -84,6 +88,7 @@ codingProjectRouter.get('/cells/:sessionId', async (req, res) => {
 });
 
 codingProjectRouter.post('/cells/:sessionId', async (req, res) => {
+  console.log('POSTING SESSION', req.body);
   if (req.params.sessionId) {
     const { cells }: { cells: Cell[] } = req.body;
     const filename = path.join(sessionDir, req.params.sessionId);
