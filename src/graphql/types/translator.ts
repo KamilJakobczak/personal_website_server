@@ -2,11 +2,7 @@ import { Prisma, Translator } from '@prisma/client';
 import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
 import { FeedArgs } from '../interfaces';
-type MongoAggregateResult<T> = {
-	cursor?: {
-		firstBatch?: T[];
-	};
-};
+
 export const translator = gql`
  type Translator implements Node {
     id: ID!
@@ -23,7 +19,7 @@ export const translator = gql`
 
   type Mutation {
     addTranslator(input: addTranslatorInput): TranslatorPayload!
-    updateTranslator(id: ID!, input: updateTranslatorArgs!): TranslatorPayload!
+    updateTranslator(input: updateTranslatorArgs!): TranslatorPayload!
   }
  
   input addTranslatorInput {
@@ -31,6 +27,7 @@ export const translator = gql`
     lastName: String!
   }
   input updateTranslatorArgs {
+	 id: ID!
     firstName: String!
     lastName: String!
   }
@@ -50,8 +47,7 @@ interface TranslatorArgs {
 	input: { firstName: string; lastName: string };
 }
 interface TranslatorUpdateArgs {
-	id: string;
-	input: { firstName: string; lastName: string };
+	input: { id: string; firstName: string; lastName: string };
 }
 interface TranslatorPayloadType {
 	userErrors: {
@@ -153,10 +149,10 @@ export const translatorResolvers = {
 		},
 		updateTranslator: async (
 			_: any,
-			{ id, input }: TranslatorUpdateArgs,
+			{ input }: TranslatorUpdateArgs,
 			{ prisma }: Context
 		): Promise<TranslatorPayloadType> => {
-			const { firstName, lastName } = input;
+			const { id, firstName, lastName } = input;
 			const translatorExists = await prisma.translator.findUnique({
 				where: {
 					id,
