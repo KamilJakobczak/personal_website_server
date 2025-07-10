@@ -4,29 +4,29 @@ import { Context } from '../../bookCollection/prismaClient';
 import { FeedArgs } from '../interfaces';
 
 interface BookSeriesArgs {
-  input: {
-    name: string;
-    booksInBookSeries: {
-      tome: string;
-      bookId: string;
-    }[];
-  };
+	input: {
+		name: string;
+		booksInBookSeries: {
+			tome: string;
+			bookId: string;
+		}[];
+	};
 }
 interface BookSeriesUpdateArgs {
-  id: string;
-  input: {
-    name: string;
-    booksInBookSeries: {
-      tome: string;
-      bookId: string;
-    };
-  };
+	input: {
+		id: string;
+		name: string;
+		booksInBookSeries: {
+			tome: string;
+			bookId: string;
+		}[];
+	};
 }
 interface BookSeriesPayloadType {
-  userErrors: {
-    message: string;
-  }[];
-  bookSeries: BookSeries | Prisma.Prisma__BookSeriesClient<BookSeries> | null;
+	userErrors: {
+		message: string;
+	}[];
+	bookSeries: BookSeries | Prisma.Prisma__BookSeriesClient<BookSeries> | null;
 }
 
 export const bookSeries = gql`
@@ -38,7 +38,7 @@ export const bookSeries = gql`
 
   type Mutation {
     addBookSeries(input: addBookSeriesInput!): BookSeriesPayload!
-    updateBookSeries(id: ID!, input: updateBookSeriesInput!): BookSeriesPayload
+    updateBookSeries(input: updateBookSeriesInput!): BookSeriesPayload
   }
 
   type BookSeriesPayload {
@@ -55,6 +55,7 @@ export const bookSeries = gql`
     booksInBookSeries: [BookInBookSeriesInput]
   }
   input updateBookSeriesInput {
+    id: ID!
     name: String
     booksInBookSeries: [BookInBookSeriesInput]
   }
@@ -66,141 +67,179 @@ export const bookSeries = gql`
   type BookSeries implements Node {
     id: ID!
     name: String!
-    books: [Book!]!
     booksInBookSeries: [BookInBookSeries]!
   }
   type BookInBookSeries {
     tome: String
-    bookId: String
+    bookId: ID!
+    book: Book!
   }
 `;
 
 export const bookSeriesResolvers = {
-  Query: {
-    singleBookSeries: (_: any, { id }: { id: string }, { prisma }: Context) => {
-      return prisma.bookSeries.findUnique({
-        where: {
-          id,
-        },
-      });
-    },
-    bookSeries: (_: any, __: any, { prisma }: Context) => {
-      return prisma.bookSeries.findMany();
-    },
-    bookSeriesFeed: async (_: any, { input }: FeedArgs, { prisma }: Context) => {
-      const { offset, limit } = input;
-      const bookSeries = await prisma.bookSeries.findMany({
-        skip: offset,
-        take: limit,
-        orderBy: { name: 'asc' },
-      });
+	Query: {
+		singleBookSeries: (
+			_: any,
+			{ id }: { id: string },
+			{ prisma }: Context
+		) => {
+			return prisma.bookSeries.findUnique({
+				where: {
+					id,
+				},
+			});
+		},
+		bookSeries: (_: any, __: any, { prisma }: Context) => {
+			return prisma.bookSeries.findMany();
+		},
+		bookSeriesFeed: async (
+			_: any,
+			{ input }: FeedArgs,
+			{ prisma }: Context
+		) => {
+			const { offset, limit } = input;
+			const bookSeries = await prisma.bookSeries.findMany({
+				skip: offset,
+				take: limit,
+				orderBy: { name: 'asc' },
+			});
 
-      const totalCount = await prisma.bookSeries.count();
-      return { bookSeries, totalCount };
-    },
-  },
-  BookSeries: {
-    books: async ({ id }: { id: string }, __: any, { prisma }: Context) => {
-      const books = await prisma.book.findMany({
-        where: {
-          bookSeriesIDs: {
-            has: id,
-          },
-        },
-      });
-      return books;
-    },
-  },
-  Mutation: {
-    addBookSeries: async (_: any, { input }: BookSeriesArgs, { prisma }: Context): Promise<BookSeriesPayloadType> => {
-      const { name, booksInBookSeries } = input;
-      if (name === '') {
-        return {
-          userErrors: [{ message: 'Must provide a name' }],
-          bookSeries: null,
-        };
-      }
-      const doesExist = await prisma.bookSeries.findFirst({
-        where: {
-          name: {
-            equals: name,
-            mode: 'insensitive',
-          },
-        },
-      });
-      if (doesExist) {
-        return {
-          userErrors: [{ message: 'BookSeries already exists in the database' }],
-          bookSeries: null,
-        };
-      }
-      const bookSeries = await prisma.bookSeries.create({
-        data: {
-          name: name,
-          booksInBookSeries,
-        },
-      });
-      await prisma.book.updateMany({
-        where: {
-          id: {
-            in: booksInBookSeries.map(book => book.bookId),
-          },
-        },
-        data: {
-          bookSeriesIDs: {
-            push: bookSeries.id,
-          },
-        },
-      });
+			const totalCount = await prisma.bookSeries.count();
+			return { bookSeries, totalCount };
+		},
+	},
+	BookSeries: {
+		// books: async ({ id }: { id: string }, __: any, { prisma }: Context) => {
+		// 	const books = await prisma.book.findMany({
+		// 		where: {
+		// 			bookSeriesIDs: {
+		// 				has: id,
+		// 			},
+		// 		},
+		// 	});
+		// 	return books;
+		// },
+	},
+	Mutation: {
+		addBookSeries: async (
+			_: any,
+			{ input }: BookSeriesArgs,
+			{ prisma }: Context
+		): Promise<BookSeriesPayloadType> => {
+			const { name, booksInBookSeries } = input;
+			if (name === '') {
+				return {
+					userErrors: [{ message: 'Must provide a name' }],
+					bookSeries: null,
+				};
+			}
+			const doesExist = await prisma.bookSeries.findFirst({
+				where: {
+					name: {
+						equals: name,
+						mode: 'insensitive',
+					},
+				},
+			});
+			if (doesExist) {
+				return {
+					userErrors: [
+						{ message: 'BookSeries already exists in the database' },
+					],
+					bookSeries: null,
+				};
+			}
+			const bookSeries = await prisma.bookSeries.create({
+				data: {
+					name: name,
+					booksInBookSeries,
+				},
+			});
+			await prisma.book.updateMany({
+				where: {
+					id: {
+						in: booksInBookSeries.map(book => book.bookId),
+					},
+				},
+				data: {
+					bookSeriesIDs: {
+						push: bookSeries.id,
+					},
+				},
+			});
 
-      return {
-        userErrors: [{ message: '' }],
-        bookSeries,
-      };
-    },
+			return {
+				userErrors: [{ message: '' }],
+				bookSeries,
+			};
+		},
 
-    updateBookSeries: async (
-      _: any,
-      { id, input }: BookSeriesUpdateArgs,
-      { prisma }: Context
-    ): Promise<BookSeriesPayloadType> => {
-      const { name, booksInBookSeries } = input;
-      const { tome, bookId } = booksInBookSeries;
+		updateBookSeries: async (
+			_: any,
+			{ input }: BookSeriesUpdateArgs,
+			{ prisma }: Context
+		): Promise<BookSeriesPayloadType> => {
+			const { id, name, booksInBookSeries } = input;
 
-      const bookSeriesExists = prisma.bookSeries.findUnique({
-        where: {
-          id,
-        },
-      });
-      if (!bookSeriesExists) {
-        return {
-          userErrors: [{ message: 'book series of specified id does not exist' }],
-          bookSeries: null,
-        };
-      }
+			const bookSeriesExists = prisma.bookSeries.findUnique({
+				where: {
+					id,
+				},
+			});
+			if (!bookSeriesExists) {
+				return {
+					userErrors: [
+						{ message: 'book series of specified id does not exist' },
+					],
+					bookSeries: null,
+				};
+			}
 
-      if (!name) {
-        return {
-          userErrors: [{ message: 'must provide a new name' }],
-          bookSeries: null,
-        };
-      }
-
-      return {
-        userErrors: [{ message: '' }],
-        bookSeries: prisma.bookSeries.update({
-          data: {
-            name,
-            booksInBookSeries: {
-              tome,
-              bookId,
-            },
-          },
-          where: {
-            id,
-          },
-        }),
-      };
-    },
-  },
+			if (!name) {
+				return {
+					userErrors: [{ message: 'must provide a new name' }],
+					bookSeries: null,
+				};
+			}
+			const bookIDs = booksInBookSeries.map(book => book.bookId);
+			const booksToUpdate = await prisma.book.findMany({
+				where: {
+					id: {
+						in: bookIDs,
+					},
+				},
+				select: {
+					id: true,
+					bookSeriesIDs: true,
+				},
+			});
+			const filteredBooks = booksToUpdate.filter(
+				book => !book.bookSeriesIDs.includes(id)
+			);
+			await prisma.book.updateMany({
+				where: {
+					id: {
+						in: filteredBooks.map(map => map.id),
+					},
+				},
+				data: {
+					bookSeriesIDs: {
+						push: id,
+					},
+				},
+			});
+			return {
+				userErrors: [{ message: '' }],
+				bookSeries: prisma.bookSeries.update({
+					data: {
+						name,
+						booksInBookSeries,
+					},
+					where: {
+						id,
+					},
+				}),
+			};
+		},
+	},
 };

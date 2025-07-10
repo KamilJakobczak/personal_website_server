@@ -456,6 +456,16 @@ export const bookResolvers = {
 				};
 			}
 
+			// if (bookSeries) {
+			// 	bookSeries.forEach(async (series, index) => {
+			// 		await prisma.bookSeries.update({
+			// 			where: {
+			// 				id: series,
+			// 			},
+			// 		data:{}
+			// 		});
+			// 	});
+			// }
 			return {
 				userErrors: [
 					{
