@@ -2,6 +2,7 @@ import { BookSeries, Prisma } from '@prisma/client';
 import gql from 'graphql-tag';
 import { Context } from '../../bookCollection/prismaClient';
 import { FeedArgs } from '../interfaces';
+import { BooksParentType } from '../interfaces';
 
 interface BookSeriesArgs {
 	input: {
@@ -68,6 +69,7 @@ export const bookSeries = gql`
     id: ID!
     name: String!
     booksInBookSeries: [BookInBookSeries]!
+	 books: [Book!]!
   }
   type BookInBookSeries {
     tome: String
@@ -109,16 +111,15 @@ export const bookSeriesResolvers = {
 		},
 	},
 	BookSeries: {
-		// books: async ({ id }: { id: string }, __: any, { prisma }: Context) => {
-		// 	const books = await prisma.book.findMany({
-		// 		where: {
-		// 			bookSeriesIDs: {
-		// 				has: id,
-		// 			},
-		// 		},
-		// 	});
-		// 	return books;
-		// },
+		books: async ({ id }: BooksParentType, __: any, { prisma }: Context) => {
+			return prisma.book.findMany({
+				where: {
+					bookSeriesIDs: {
+						has: id,
+					},
+				},
+			});
+		},
 	},
 	Mutation: {
 		addBookSeries: async (
