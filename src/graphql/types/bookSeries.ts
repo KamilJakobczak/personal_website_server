@@ -182,7 +182,7 @@ export const bookSeriesResolvers = {
 		): Promise<BookSeriesPayloadType> => {
 			const { id, name, booksInBookSeries } = input;
 
-			const bookSeriesExists = prisma.bookSeries.findUnique({
+			const bookSeriesExists = await prisma.bookSeries.findUnique({
 				where: {
 					id,
 				},
@@ -202,36 +202,67 @@ export const bookSeriesResolvers = {
 					bookSeries: null,
 				};
 			}
-			const bookIDs = booksInBookSeries.map(book => book.bookId);
-			const booksToUpdate = await prisma.book.findMany({
+			// Books being updated
+			const updatedBookIDs = booksInBookSeries.map(book => book.bookId);
+			// Books already in relation to current book series
+			const allRelatedBooks = await prisma.book.findMany({
 				where: {
-					id: {
-						in: bookIDs,
-					},
+					bookSeriesIDs: { has: id },
 				},
 				select: {
 					id: true,
 					bookSeriesIDs: true,
 				},
 			});
-			const filteredBooks = booksToUpdate.filter(
-				book => !book.bookSeriesIDs.includes(id)
+			// Get books to be deleted
+
+			const booksToDelete = allRelatedBooks.filter(
+				book => !updatedBookIDs.includes(book.id)
 			);
-			await prisma.book.updateMany({
+			console.log(booksToDelete);
+			await Promise.all(
+				booksToDelete.map(book =>
+					prisma.book.update({
+						where: { id: book.id },
+						data: {
+							bookSeriesIDs: {
+								set: book.bookSeriesIDs.filter(
+									seriesId => seriesId !== id
+								),
+							},
+						},
+					})
+				)
+			);
+
+			const booksToUpdate = await prisma.book.findMany({
 				where: {
-					id: {
-						in: filteredBooks.map(map => map.id),
-					},
+					id: { in: updatedBookIDs },
 				},
-				data: {
-					bookSeriesIDs: {
-						push: id,
-					},
+				select: {
+					id: true,
+					bookSeriesIDs: true,
 				},
 			});
+			const newBooksToAdd = booksToUpdate.filter(
+				book => !book.bookSeriesIDs.includes(id)
+			);
+			await Promise.all(
+				newBooksToAdd.map(book =>
+					prisma.book.update({
+						where: { id: book.id },
+						data: {
+							bookSeriesIDs: {
+								push: id,
+							},
+						},
+					})
+				)
+			);
+
 			return {
 				userErrors: [{ message: '' }],
-				bookSeries: prisma.bookSeries.update({
+				bookSeries: await prisma.bookSeries.update({
 					data: {
 						name,
 						booksInBookSeries,
