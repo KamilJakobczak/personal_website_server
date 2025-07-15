@@ -36,50 +36,45 @@ declare module 'epub' {
 	}
 }
 
-const numCPUs = os.cpus().length;
 const { host, backPort } = config;
+const port = Number(backPort);
+const isProduction = process.env.NODE_ENV === 'production';
 
-if (cluster.isPrimary) {
-	// If primary, set up worker clusters
-	console.log(`Primary ${process.pid} is running`);
+async function launchServer() {
+	const httpServer = http.createServer(app);
 
+	httpServer.on('error', error => {
+		console.error(`HTTP Server Error: ${error.message}`);
+	});
+
+	try {
+		await startApolloServer(app, httpServer);
+		httpServer.listen(port, host, () => {
+			console.log(
+				`🚀 Server running at http://${host}:${port} | PID: ${process.pid}`
+			);
+		});
+	} catch (error) {
+		console.error('Error starting Apollo Server', error);
+	}
+}
+
+if (isProduction && cluster.isPrimary) {
+	console.log(`Primary ${process.pid} is running in Production mode`);
+	const numCPUs = os.cpus().length;
 	for (let i = 0; i < numCPUs; i++) {
 		cluster.fork();
 	}
-
 	cluster.on('exit', (worker, code, signal) => {
-		console.log(`Worker ${worker.process.pid} died`);
+		console.log(`Worker ${worker.process.pid} died. Restarting...`);
 		// Optionally, restart the worker
 		cluster.fork();
 	});
 } else {
-	// Worker process: create HTTP server and start Apollo Server
-	const httpServer = http.createServer(app);
-	const port = Number(backPort);
-
-	// General error handling
-	httpServer.on('error', error => {
-		console.error(
-			`HTTP Server Error: ${error.message}`
-		);
-	});
-
-	try {
-		startApolloServer(app, httpServer)
-			.then(() => {
-				httpServer.listen(port, host, () => {
-					console.log(
-						`Worker ${process.pid} started and listening at http://${host}:${port}`
-					);
-				});
-			})
-			.catch(error => {
-				console.error('Error starting Apollo Server');
-			});
-	} catch (error) {
-		console.error(`Error initializing server`, error);
-	}
 	console.log(
-		`Worker ${process.pid} started on Port: ${port}`
+		`🔧 ${process.pid} running in ${
+			isProduction ? 'Production' : 'Development'
+		} mode`
 	);
+	launchServer();
 }
