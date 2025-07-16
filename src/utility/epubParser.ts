@@ -31,77 +31,163 @@ export interface epubParserData {
 	bookExists: boolean;
 }
 
-export const epubParser = async (filepath: string, fileName: string) => {
-	return new Promise<epubParserData>(function (resolve, reject) {
-		const epub = new EPub(
-			filepath,
-			path.join(__dirname, '..', '..', 'files', 'temp', 'covers'),
-			'../../files/temp'
-		);
-		epub.on('end', async function () {
-			const localId = fileName;
-
-			const data = epub.metadata;
-			console.log(data);
-			const isbn = data.ISBN;
-			const bookExists = await prisma.book.findFirst({
-				where: {
-					isbn: isbn,
-				},
-			});
-			if (bookExists) {
-				return 'book is already in the database';
-			}
-			const cover = data.cover;
-			const authors = data.creator;
-			const description = data.description;
-			const genres = data.subject;
-			const title = data.title;
-			const publisher = data.publisher;
-			const language = data.language;
-			console.log(isbn);
-
-			let parsedData = {
-				localId,
-				title: title ? title : null,
-				description: description ? description : null,
-				isbn: isbn ? isbn : null,
-				authors: await findAuthors(authors),
-				genres: await findGenres(genres),
-				language: await checkLanguage(language),
-				publisher: await findPublisher(publisher),
-				bookExists: bookExists ? true : false,
-			};
-
-			if (cover === undefined) {
-				console.log(`${title} has no cover`);
-			} else {
-				const coverPath = path.join(
-					__dirname,
-					'..',
-					'..',
-					'files',
-					'images',
-					'temp',
-					'covers',
-					`${localId}.jpg`
-				);
-				const isCover = extractImage(epub, cover, coverPath);
-				if (isCover !== false) {
-					parsedData = {
-						...parsedData,
-						...{
-							cover: `${host}/api/images/uploaded/covers/${localId}.jpg`,
+export const epubParser = async (
+	filepath: string,
+	fileName: string
+): Promise<epubParserData> => {
+	const coverTempPath = path.join(
+		__dirname,
+		'..',
+		'..',
+		'files',
+		'images',
+		'temp',
+		'covers'
+	);
+	const epub = new EPub(
+		filepath,
+		path.join(__dirname, '..', '..', 'files', 'temp', 'covers'),
+		'../../files/temp'
+	);
+	return new Promise<epubParserData>((resolve, reject) => {
+		epub.on('end', async () => {
+			try {
+				const {
+					title,
+					creator,
+					description,
+					subject,
+					ISBN,
+					publisher,
+					language,
+					cover,
+				} = epub.metadata;
+				const localId = fileName;
+				let bookExistsRecord = null;
+				if (ISBN) {
+					bookExistsRecord = await prisma.book.findFirst({
+						where: {
+							isbn: ISBN,
 						},
-					};
+					});
 				}
+				if (!bookExistsRecord && title) {
+					bookExistsRecord = await prisma.book.findFirst({
+						where: {
+							title: {
+								equals: title,
+								mode: 'insensitive',
+							},
+						},
+					});
+				}
+				const bookExists = !!bookExistsRecord;
+
+				let parsedData: epubParserData = {
+					title: title ?? null,
+					description: description ?? null,
+					isbn: ISBN ? ISBN : null,
+					authors: await findAuthors(creator),
+					genres: await findGenres(subject),
+					language: await checkLanguage(language),
+					publisher: await findPublisher(publisher),
+					bookExists: bookExists,
+				};
+
+				if (cover) {
+					const coverPath = path.join(coverTempPath, localId, '.jpg');
+					try {
+						await extractImage(epub, cover, coverPath);
+						parsedData.cover = `${host}/api/images/uploaded/covers/${localId}.jpg`;
+					} catch {
+						console.warn(
+							`[Cover Fail] Could not extract cover for ${title}`
+						);
+					}
+				}
+				resolve(parsedData);
+			} catch (err) {
+				console.error('[Parsing Error]', err);
+				reject(err);
 			}
 
-			resolve(parsedData);
+			epub.on('error', error => {
+				console.error('[EPUB Error]', error);
+				reject(error);
+			});
 		});
-
 		epub.parse();
+		console.log(`[EPUB Parse Triggered] ${fileName}`);
 	});
+	//const epub = new EPub(
+	// 	filepath,
+	// 	path.join(__dirname, '..', '..', 'files', 'temp', 'covers'),
+	// 	'../../files/temp'
+	// );
+	// 	epub.on('end', async function () {
+	// 		const localId = fileName;
+
+	// 		const data = epub.metadata;
+	// 		console.log(data);
+	// 		const isbn = data.ISBN;
+	// 		const bookExists = await prisma.book.findFirst({
+	// 			where: {
+	// 				isbn: isbn,
+	// 			},
+	// 		});
+	// 		if (bookExists) {
+	// 			return 'book is already in the database';
+	// 		}
+	// 		const cover = data.cover;
+	// 		const authors = data.creator;
+	// 		const description = data.description;
+	// 		const genres = data.subject;
+	// 		const title = data.title;
+	// 		const publisher = data.publisher;
+	// 		const language = data.language;
+	// 		console.log(isbn);
+
+	// 		let parsedData = {
+	// 			localId,
+	// 			title: title ? title : null,
+	// 			description: description ? description : null,
+	// 			isbn: isbn ? isbn : null,
+	// 			authors: await findAuthors(authors),
+	// 			genres: await findGenres(genres),
+	// 			language: await checkLanguage(language),
+	// 			publisher: await findPublisher(publisher),
+	// 			bookExists: bookExists ? true : false,
+	// 		};
+
+	// 		if (cover === undefined) {
+	// 			console.log(`${title} has no cover`);
+	// 		} else {
+	// 			const coverPath = path.join(
+	// 				__dirname,
+	// 				'..',
+	// 				'..',
+	// 				'files',
+	// 				'images',
+	// 				'temp',
+	// 				'covers',
+	// 				`${localId}.jpg`
+	// 			);
+	// 			const isCover = extractImage(epub, cover, coverPath);
+	// 			if (isCover !== false) {
+	// 				parsedData = {
+	// 					...parsedData,
+	// 					...{
+	// 						cover: `${host}/api/images/uploaded/covers/${localId}.jpg`,
+	// 					},
+	// 				};
+	// 			}
+	// 		}
+
+	// 		resolve(parsedData);
+	// 	});
+
+	// 	epub.parse();
+	// });
 };
 
 // FUNCTIONS
@@ -110,14 +196,18 @@ function extractImage(
 	epub: EPub,
 	cover: string,
 	coverPath: string
-): void | boolean {
-	epub.getImage(cover, async function (error, img, mimeType) {
-		try {
-			fs.writeFileSync(coverPath, img);
-		} catch (err) {
-			console.log(err);
-			return false;
-		}
+): Promise<void> {
+	return new Promise((resolve, reject) => {
+		epub.getImage(cover, (error, img) => {
+			if (error) return reject(error);
+			try {
+				fs.writeFileSync(coverPath, img);
+				resolve();
+			} catch (err) {
+				console.log(err);
+				reject(err);
+			}
+		});
 	});
 }
 
@@ -155,25 +245,18 @@ async function findPublisher(publisher: string) {
 	}
 }
 
-async function checkLanguage(language: string) {
+async function checkLanguage(language: string): Promise<string | null> {
 	if (!language) {
 		return null;
 	}
-	switch (language) {
-		case 'pl-pl':
-			return 'Polish';
-		case 'pl':
-			return 'Polish';
-		case 'en-gb':
-			return 'English';
-		case 'en':
-			return 'English';
-		case 'en-us':
-			return 'English';
-
-		default:
-			return '';
-	}
+	const langMap: Record<string, string> = {
+		'pl-pl': 'Polish',
+		pl: 'Polish',
+		'en-gb': 'English',
+		en: 'English',
+		'en-us': 'English',
+	};
+	return langMap[language.toLowerCase()] || '';
 }
 
 async function findAuthors(authors: string) {
